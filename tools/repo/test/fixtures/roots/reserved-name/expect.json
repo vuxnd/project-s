@@ -1,0 +1,6 @@
+{
+  "$comment": "reserved declares a system named init.",
+  "errors": ["reserved-name"],
+  "warnings": [],
+  "generated": false
+}

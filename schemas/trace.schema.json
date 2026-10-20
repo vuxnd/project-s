@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Trace",
+  "description": "<root>/modules/<contract>/conformance/<name>.json: a language-neutral behaviour test of a contract (contract C6 in ARCHITECTURE.md).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["summary", "fixedHz", "ticks", "expect"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "$comment": { "type": "string" },
+    "summary": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "fixedHz": { "type": "integer", "minimum": 1, "maximum": 1000 },
+    "ticks": { "type": "integer", "minimum": 0, "maximum": 100000 },
+    "modules": { "$ref": "module.schema.json#/$defs/names" },
+    "config": {
+      "type": "object",
+      "propertyNames": { "$ref": "module.schema.json#/$defs/name" },
+      "additionalProperties": { "$ref": "module.schema.json#/$defs/object" }
+    },
+    "records": {
+      "type": "object",
+      "propertyNames": { "$ref": "module.schema.json#/$defs/qualifiedId" },
+      "additionalProperties": {
+        "type": "object",
+        "propertyNames": { "$ref": "module.schema.json#/$defs/name" },
+        "additionalProperties": { "$ref": "module.schema.json#/$defs/object" }
+      }
+    },
+    "inputs": { "type": "array", "items": { "$ref": "#/$defs/input" } },
+    "expect": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/expectation" } }
+  },
+  "$defs": {
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["at", "event", "payload"],
+      "properties": {
+        "at": { "type": "integer", "minimum": 0 },
+        "event": { "$ref": "module.schema.json#/$defs/qualifiedId" },
+        "payload": {}
+      }
+    },
+    "expectation": {
+      "description": "Call form: at, call, optional params and pointer, then equals or near with within. Count form: by, emitted, count.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "at": { "type": "integer", "minimum": 0 },
+        "call": { "$ref": "module.schema.json#/$defs/qualifiedId" },
+        "params": {},
+        "pointer": { "type": "string", "pattern": "^(/[^/]*)*$" },
+        "equals": {},
+        "near": { "type": "number" },
+        "within": { "type": "number", "minimum": 0 },
+        "by": { "type": "integer", "minimum": 0 },
+        "emitted": { "$ref": "module.schema.json#/$defs/qualifiedId" },
+        "count": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

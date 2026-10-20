@@ -1,0 +1,6 @@
+{
+  "id": "shaped",
+  "summary": "A contract that declares a system.",
+  "contract": true,
+  "systems": [{ "name": "run", "loop": "fixed" }]
+}

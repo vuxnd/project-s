@@ -1,0 +1,6 @@
+{
+  "$comment": "user requires old, whose manifest is marked deprecated.",
+  "errors": [],
+  "warnings": ["deprecated"],
+  "generated": false
+}

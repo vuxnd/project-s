@@ -1,0 +1,6 @@
+{
+  "id": "both",
+  "summary": "Lists one module in requires and in optional.",
+  "requires": ["base"],
+  "optional": ["base"]
+}

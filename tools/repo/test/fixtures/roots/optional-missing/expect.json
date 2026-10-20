@@ -1,0 +1,6 @@
+{
+  "$comment": "user lists ghost in optional and no module ghost exists; that is a warning.",
+  "errors": [],
+  "warnings": ["unknown-module"],
+  "generated": false
+}

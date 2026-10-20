@@ -1,0 +1,6 @@
+{
+  "$comment": "The manifest and the game carry a $schema that is not the relative path of their schema.",
+  "errors": ["schema-path"],
+  "warnings": [],
+  "generated": false
+}

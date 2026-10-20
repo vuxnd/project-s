@@ -1,0 +1,6 @@
+{
+  "$comment": "user requires impl, an implementation, instead of its contract api.",
+  "errors": ["require-contract"],
+  "warnings": [],
+  "generated": false
+}

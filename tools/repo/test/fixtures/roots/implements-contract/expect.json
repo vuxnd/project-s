@@ -1,0 +1,6 @@
+{
+  "$comment": "claims implements plain, which is not a contract.",
+  "errors": ["implements-contract"],
+  "warnings": [],
+  "generated": false
+}

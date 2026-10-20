@@ -1,0 +1,6 @@
+{
+  "$comment": "The game demo lists host node but gives pack an entry for host web.",
+  "errors": ["entry-host"],
+  "warnings": [],
+  "generated": false
+}

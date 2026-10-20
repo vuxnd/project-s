@@ -1,0 +1,6 @@
+{
+  "$comment": "holes declares the type item at a schema path that does not exist.",
+  "errors": ["missing-file"],
+  "warnings": [],
+  "generated": false
+}

@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Module manifest",
+  "description": "<root>/modules/<id>/module.json, manifest format 1 (contract C1 in ARCHITECTURE.md).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "summary"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "$comment": { "type": "string" },
+    "manifest": { "description": "Manifest format. Absent means 1.", "const": 1 },
+    "id": { "$ref": "#/$defs/name" },
+    "summary": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "deprecated": { "description": "Names the replacement. Every use prints a warning.", "type": "string", "minLength": 1 },
+    "contract": { "type": "boolean" },
+    "implements": { "$ref": "#/$defs/names" },
+    "requires": { "$ref": "#/$defs/names" },
+    "optional": { "$ref": "#/$defs/names" },
+    "types": { "$ref": "#/$defs/schemaMap" },
+    "events": { "$ref": "#/$defs/schemaMap" },
+    "operations": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/name" },
+      "additionalProperties": { "$ref": "#/$defs/operation" }
+    },
+    "state": { "$ref": "#/$defs/path" },
+    "config": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "defaults"],
+      "properties": {
+        "schema": { "$ref": "#/$defs/path" },
+        "defaults": { "$ref": "#/$defs/object" }
+      }
+    },
+    "systems": { "type": "array", "items": { "$ref": "#/$defs/system" } },
+    "hosts": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/name" },
+      "additionalProperties": { "$ref": "#/$defs/path" }
+    },
+    "packages": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^(node:[a-z][a-z0-9_]*|(@[a-z0-9][a-z0-9._-]*/)?[a-z0-9][a-z0-9._-]*)$" }
+    }
+  },
+  "$defs": {
+    "name": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,63}$" },
+    "names": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/name" } },
+    "qualifiedId": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,63}\\.[a-z][a-z0-9_]{0,63}$" },
+    "path": { "type": "string", "pattern": "^[A-Za-z0-9_][A-Za-z0-9_.-]*(/[A-Za-z0-9_][A-Za-z0-9_.-]*)*$" },
+    "object": { "type": "object", "propertyNames": { "type": "string" }, "additionalProperties": {} },
+    "schemaMap": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/name" },
+      "additionalProperties": { "$ref": "#/$defs/path" }
+    },
+    "operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "params": { "$ref": "#/$defs/path" },
+        "result": { "$ref": "#/$defs/path" }
+      }
+    },
+    "systemRef": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,63}(\\.[a-z][a-z0-9_]{0,63})?$" },
+    "system": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "loop"],
+      "properties": {
+        "name": { "$ref": "#/$defs/name" },
+        "loop": { "type": "string", "enum": ["fixed", "frame"] },
+        "after": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/systemRef" } },
+        "before": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/systemRef" } }
+      }
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "id": "reserved",
+  "summary": "Declares a system named init.",
+  "systems": [{ "name": "init", "loop": "fixed" }],
+  "hosts": { "node": "ts/index.ts" }
+}

@@ -1,0 +1,8 @@
+{
+  "$schema": "game.schema.json",
+  "id": "demo",
+  "summary": "A game with a wrong $schema path.",
+  "hosts": ["node"],
+  "fixedHz": 60,
+  "modules": { "wrong": {} }
+}

@@ -1,0 +1,5 @@
+{
+  "id": "claims",
+  "summary": "Implements a module that is not a contract.",
+  "implements": ["plain"]
+}

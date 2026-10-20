@@ -1,0 +1,6 @@
+{
+  "$comment": "twice declares two systems named run.",
+  "errors": ["duplicate-name"],
+  "warnings": [],
+  "generated": false
+}

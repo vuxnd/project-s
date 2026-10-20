@@ -1,0 +1,9 @@
+{
+  "id": "twice",
+  "summary": "Declares two systems named run.",
+  "systems": [
+    { "name": "run", "loop": "fixed" },
+    { "name": "run", "loop": "frame" }
+  ],
+  "hosts": { "node": "ts/index.ts" }
+}

@@ -1,0 +1,6 @@
+{
+  "$comment": "A clean root: a contract, an implementation, a user of the contract and a game.",
+  "errors": [],
+  "warnings": [],
+  "generated": false
+}

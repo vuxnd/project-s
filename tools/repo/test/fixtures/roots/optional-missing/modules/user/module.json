@@ -1,0 +1,5 @@
+{
+  "id": "user",
+  "summary": "Optionally uses a module that does not exist.",
+  "optional": ["ghost"]
+}

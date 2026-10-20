@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Bundle",
+  "description": "build/<root>/games/<game>/<host>/bundle.json, format 1: the only file a host reads (contract C4 in ARCHITECTURE.md).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "game", "host", "fixedHz", "modules", "contracts", "operations", "events", "types", "config", "records", "assets", "schedule"],
+  "properties": {
+    "format": { "const": 1 },
+    "game": { "type": "string", "minLength": 1 },
+    "host": { "$ref": "module.schema.json#/$defs/name" },
+    "fixedHz": { "type": "integer", "minimum": 1, "maximum": 1000 },
+    "modules": { "type": "array", "items": { "$ref": "#/$defs/module" } },
+    "contracts": {
+      "type": "object",
+      "propertyNames": { "$ref": "module.schema.json#/$defs/name" },
+      "additionalProperties": { "$ref": "module.schema.json#/$defs/name" }
+    },
+    "operations": { "$ref": "#/$defs/owners" },
+    "events": { "$ref": "#/$defs/owners" },
+    "types": {
+      "type": "object",
+      "propertyNames": { "$ref": "module.schema.json#/$defs/qualifiedId" },
+      "additionalProperties": { "type": "integer", "minimum": 1 }
+    },
+    "config": {
+      "type": "object",
+      "propertyNames": { "$ref": "module.schema.json#/$defs/name" },
+      "additionalProperties": { "$ref": "module.schema.json#/$defs/object" }
+    },
+    "records": {
+      "type": "object",
+      "propertyNames": { "$ref": "module.schema.json#/$defs/qualifiedId" },
+      "additionalProperties": {
+        "type": "object",
+        "propertyNames": { "$ref": "#/$defs/recordId" },
+        "additionalProperties": { "$ref": "module.schema.json#/$defs/object" }
+      }
+    },
+    "assets": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+    "schedule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fixed", "frame"],
+      "properties": {
+        "fixed": { "type": "array", "items": { "$ref": "module.schema.json#/$defs/qualifiedId" } },
+        "frame": { "type": "array", "items": { "$ref": "module.schema.json#/$defs/qualifiedId" } }
+      }
+    },
+    "schemas": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "events", "params", "results"],
+      "properties": {
+        "state": { "$ref": "#/$defs/paths" },
+        "events": { "$ref": "#/$defs/paths" },
+        "params": { "$ref": "#/$defs/paths" },
+        "results": { "$ref": "#/$defs/paths" }
+      }
+    }
+  },
+  "$defs": {
+    "recordId": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,63}/[a-z][a-z0-9_]{0,63}$" },
+    "owners": {
+      "type": "object",
+      "propertyNames": { "$ref": "module.schema.json#/$defs/qualifiedId" },
+      "additionalProperties": { "$ref": "module.schema.json#/$defs/name" }
+    },
+    "paths": {
+      "type": "object",
+      "propertyNames": { "type": "string", "minLength": 1 },
+      "additionalProperties": { "type": "string", "minLength": 1 }
+    },
+    "module": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "entry", "sees", "absent", "packages"],
+      "properties": {
+        "id": { "$ref": "module.schema.json#/$defs/name" },
+        "entry": { "type": "string", "minLength": 1 },
+        "sees": { "$ref": "module.schema.json#/$defs/names" },
+        "absent": { "$ref": "module.schema.json#/$defs/names" },
+        "packages": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } }
+      }
+    }
+  }
+}

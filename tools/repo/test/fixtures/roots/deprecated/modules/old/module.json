@@ -1,0 +1,5 @@
+{
+  "id": "old",
+  "summary": "A module that has been replaced.",
+  "deprecated": "Use new."
+}

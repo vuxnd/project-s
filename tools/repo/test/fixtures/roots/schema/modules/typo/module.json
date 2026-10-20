@@ -1,0 +1,5 @@
+{
+  "id": "typo",
+  "summary": "A manifest with a misspelled key.",
+  "requries": ["other"]
+}

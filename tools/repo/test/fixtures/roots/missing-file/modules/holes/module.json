@@ -1,0 +1,5 @@
+{
+  "id": "holes",
+  "summary": "Declares a type schema that does not exist.",
+  "types": { "item": "schemas/item.schema.json" }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "project-s",
+  "private": true,
+  "type": "module",
+  "description": "Engine-neutral game foundation: modules, schemas, bundles and traces.",
+  "devEngines": {
+    "runtime": { "name": "node", "version": ">=24.12.0", "onFail": "error" }
+  },
+  "scripts": {
+    "test": "npm run test:types && npm run test:unit",
+    "test:types": "tsc -p tsconfig.json",
+    "test:unit": "node --test \"tools/**/*.test.ts\" \"hosts/**/*.test.ts\" \"modules/**/*.test.ts\" \"examples/**/*.test.ts\""
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "ajv": "8.20.0",
+    "typescript": "7.0.2"
+  }
+}

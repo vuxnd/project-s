@@ -1,0 +1,6 @@
+{
+  "$comment": "The contract shaped declares a system.",
+  "errors": ["contract-shape"],
+  "warnings": [],
+  "generated": false
+}

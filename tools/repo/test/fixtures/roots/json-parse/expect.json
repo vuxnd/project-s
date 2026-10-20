@@ -1,0 +1,6 @@
+{
+  "$comment": "broken/module.json is not valid JSON.",
+  "errors": ["json-parse"],
+  "warnings": [],
+  "generated": false
+}

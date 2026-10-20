@@ -1,0 +1,5 @@
+{
+  "id": "user",
+  "summary": "Requires a deprecated module.",
+  "requires": ["old"]
+}

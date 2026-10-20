@@ -1,0 +1,6 @@
+{
+  "$comment": "The root has no modules folder.",
+  "errors": ["root-missing"],
+  "warnings": [],
+  "generated": false
+}

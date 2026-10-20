@@ -1,0 +1,5 @@
+{
+  "$schema": "../../schemas/module.schema.json",
+  "id": "wrong",
+  "summary": "A content-only module with a wrong $schema path."
+}

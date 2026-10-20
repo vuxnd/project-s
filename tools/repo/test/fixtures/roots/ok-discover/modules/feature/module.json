@@ -1,0 +1,8 @@
+{
+  "$schema": "../../../../../../../../schemas/module.schema.json",
+  "id": "feature",
+  "summary": "Uses api.",
+  "requires": ["api"],
+  "systems": [{ "name": "use", "loop": "fixed", "after": ["api"] }],
+  "hosts": { "node": "ts/index.ts" }
+}

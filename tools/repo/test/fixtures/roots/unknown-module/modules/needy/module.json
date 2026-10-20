@@ -1,0 +1,5 @@
+{
+  "id": "needy",
+  "summary": "Requires a module that does not exist.",
+  "requires": ["ghost"]
+}

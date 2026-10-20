@@ -1,0 +1,7 @@
+{
+  "id": "demo",
+  "summary": "Gives an entry a host that the game does not list.",
+  "hosts": ["node"],
+  "fixedHz": 60,
+  "modules": { "pack": { "hosts": ["web"] } }
+}

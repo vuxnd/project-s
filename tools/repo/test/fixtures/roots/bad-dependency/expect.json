@@ -1,0 +1,6 @@
+{
+  "$comment": "both lists base in requires and in optional.",
+  "errors": ["bad-dependency"],
+  "warnings": [],
+  "generated": false
+}

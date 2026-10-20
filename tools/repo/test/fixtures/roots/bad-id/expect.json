@@ -1,0 +1,6 @@
+{
+  "$comment": "The module in folder wrong has the id right.",
+  "errors": ["bad-id"],
+  "warnings": [],
+  "generated": false
+}
