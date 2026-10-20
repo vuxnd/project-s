@@ -49,7 +49,9 @@ def get_pointer(value: Any, pointer: str) -> Any:
 
 
 def _show(value: Any) -> str:
-    return 'undefined' if value is MISSING else json.dumps(value)
+    if value is MISSING:
+        return 'undefined'
+    return json.dumps(value, separators=(',', ':'))
 
 
 def _is_number(value: Any) -> bool:
@@ -73,7 +75,7 @@ def _check_call(game: Any, i: int, e: dict[str, Any],
     if 'near' in e:
         want = f"{json.dumps(e['near'])} within {json.dumps(e['within'])}"
     else:
-        want = json.dumps(e.get('equals'))
+        want = _show(e.get('equals'))
     lines.append(f"  expect[{i}]: {e['call']} {pointer}: "
                  f"expected {want}, got {_show(value)}")
 

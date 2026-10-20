@@ -125,6 +125,13 @@ class RuntimeRules(unittest.TestCase):
         self.assertEqual(first.snapshot(), {'m': {'calls': 1}})
         self.assertEqual(second.snapshot(), {'m': {'calls': 1}})
 
+    def test_r2_a_missing_entry_file_cannot_be_imported(self):
+        info = {'id': 'm', 'entry': 'mods/python/m.py', 'sees': ['m'],
+                'absent': [], 'packages': []}
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertEqual(self.error(load, bundle_of((info, None)), tmp),
+                             'cannot import: mods/python/m.py')
+
     def test_r3_init_runs_in_module_order_and_its_result_is_the_state(self):
         order = []
 
@@ -316,6 +323,17 @@ class RuntimeRules(unittest.TestCase):
         # them.
         self.assertEqual(seen[0], ['init', 'op', 'input'])
 
+    def test_r6_events_emitted_by_called_operations_are_returned(self):
+        a = mod('a', operations={'op': lambda ctx, p: ctx.emit('a.e', p)})
+        b = mod('b', sees=['a'], run=lambda ctx: ctx.call('a.op', 1),
+                draw=lambda ctx: ctx.call('a.op', 2))
+        game = load_inline(a, b, events={'a.e': 'a'},
+                           operations={'a.op': 'a'}, fixed=['b.run'],
+                           frame=['b.draw'])
+        self.assertEqual(game.tick(), [{'event': 'a.e', 'payload': 1}])
+        self.assertEqual(game.frame(0.1, 0),
+                         [{'event': 'a.e', 'payload': 2}])
+
     def test_r7_an_unknown_input_event_is_rejected(self):
         a = mod('a', run=lambda ctx: None)
         game = load_inline(a, events={'a.e': 'a'}, fixed=['a.run'])
@@ -382,6 +400,18 @@ class RuntimeRules(unittest.TestCase):
                            frame=['e.draw'], debug=True)
         self.assertEqual(self.error(game.frame, 0.1, 0),
                          'frame call changed state: a.bump')
+
+    def test_r9_a_new_key_order_is_a_change(self):
+        def reorder(ctx, params):
+            ctx.state = {'b': ctx.state['b'], 'a': ctx.state['a']}
+
+        a = mod('a', init=lambda ctx: {'a': 1, 'b': 2},
+                operations={'reorder': reorder})
+        b = mod('b', sees=['a'], draw=lambda ctx: ctx.call('a.reorder'))
+        game = load_inline(a, b, operations={'a.reorder': 'a'},
+                           frame=['b.draw'], debug=True)
+        self.assertEqual(self.error(game.frame, 0.1, 0),
+                         'frame call changed state: a.reorder')
 
     def test_r10_ids_of_modules_that_are_not_visible_are_rejected(self):
         kept = []
@@ -650,11 +680,13 @@ class RuntimeRules(unittest.TestCase):
     def test_r20_snapshot_is_a_json_copy_of_each_state_in_load_order(self):
         a = mod('a', init=lambda ctx: {'n': 1, 'z': -0.0})
         c = mod('c', init=lambda ctx: [1, {'k': None}])
-        game = load_inline(a, mod('b'), c)
+        d = mod('d', init=lambda ctx: 0)
+        e = mod('e', init=lambda ctx: {})
+        game = load_inline(a, mod('b'), c, d, e)
         snapshot = game.snapshot()
-        self.assertEqual(list(snapshot), ['a', 'c'])
+        self.assertEqual(list(snapshot), ['a', 'c', 'd', 'e'])
         self.assertEqual(snapshot, {'a': {'n': 1, 'z': 0.0},
-                                    'c': [1, {'k': None}]})
+                                    'c': [1, {'k': None}], 'd': 0, 'e': {}})
         self.assertEqual(sign(snapshot['a']['z']), 1)
         snapshot['a']['n'] = 99
         self.assertEqual(game.snapshot()['a']['n'], 1)

@@ -44,7 +44,7 @@ def _import_file(root: str, module_id: str, entry: str) -> Any:
     path = os.path.join(root, *entry.split('/'))
     spec = importlib.util.spec_from_file_location(
         'bundle_module_' + module_id, path)
-    if spec is None or spec.loader is None:
+    if spec is None or spec.loader is None or not os.path.isfile(path):
         raise BundleError(f'cannot import: {entry}')
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)

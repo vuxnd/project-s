@@ -60,9 +60,11 @@ test('without Python and without REQUIRE_HOSTS it prints SKIPPED and exits 0', (
 });
 
 test('without Python and with REQUIRE_HOSTS=python it exits 1', () => {
-  const r = runWithoutPath('python');
-  assert.equal(r.status, 1);
-  assert.match(r.stderr, /python 3\.11\+ not found; REQUIRE_HOSTS requires it/);
+  for (const requireHosts of ['python', 'node,python']) {
+    const r = runWithoutPath(requireHosts);
+    assert.equal(r.status, 1, requireHosts);
+    assert.match(r.stderr, /python 3\.11\+ not found; REQUIRE_HOSTS requires it/);
+  }
 });
 
 test('with Python it runs the arguments under -I -B and exits with its status', (t) => {

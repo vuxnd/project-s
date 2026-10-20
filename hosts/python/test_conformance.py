@@ -35,6 +35,22 @@ def get(ctx, params):
 operations = {'get': get}
 '''
 
+ODD = '''\
+def init(ctx):
+    return {'host': ctx.host}
+
+
+def step(ctx):
+    ctx.emit('odd.pair', (1, 2))
+
+
+def echo(ctx, params):
+    return [params, ctx.host]
+
+
+operations = {'echo': echo}
+'''
+
 # After 3 ticks with a bump of 10 in tick 1: n is 1, 12 and 13.
 PASSING = [
     {'at': 0, 'call': 'counter.get', 'pointer': '/n', 'equals': 0},
@@ -79,6 +95,19 @@ def trace_bundle(name, expect, host='python'):
     }
 
 
+def odd_bundle():
+    """A bundle of the odd module, whose step emits a tuple payload."""
+    return {
+        'format': 1, 'game': 'odd', 'host': 'python', 'fixedHz': 10,
+        'modules': [{'id': 'odd', 'entry': 'mod/odd.py', 'sees': ['odd'],
+                     'absent': [], 'packages': []}],
+        'contracts': {}, 'operations': {'odd.echo': 'odd'},
+        'events': {'odd.pair': 'odd'}, 'types': {}, 'config': {'odd': {}},
+        'records': {}, 'assets': [],
+        'schedule': {'fixed': ['odd.step'], 'frame': []},
+    }
+
+
 class ConformanceTests(unittest.TestCase):
     def setUp(self):
         tmp = tempfile.TemporaryDirectory()
@@ -91,6 +120,8 @@ class ConformanceTests(unittest.TestCase):
         with open(os.path.join('mod', 'counter.py'), 'w',
                   encoding='utf-8') as f:
             f.write(COUNTER)
+        with open(os.path.join('mod', 'odd.py'), 'w', encoding='utf-8') as f:
+            f.write(ODD)
 
     def write(self, folder, **traces):
         os.makedirs(os.path.join(self.tmp, folder), exist_ok=True)
@@ -146,7 +177,7 @@ class ConformanceTests(unittest.TestCase):
             '  expect[1]: counter.get /missing: expected 1 within 5, '
             'got undefined',
             '  expect[2]: counter.get : expected 1 within 5, got '
-            '{"n": 13, "list": [1.5, 2], "flag": true}',
+            '{"n":13,"list":[1.5,2],"flag":true}',
         ])
 
     def test_a_failed_count_prints_expected_and_got(self):
@@ -188,19 +219,35 @@ class ConformanceTests(unittest.TestCase):
 
     def test_files_run_in_sorted_order_across_folders_in_argument_order(self):
         good = trace_bundle('ok', PASSING)
-        bad = trace_bundle('bad', [{'by': 0, 'emitted': 'counter.tick',
-                                    'count': 1}])
+        bad = trace_bundle('bad', [
+            {'by': 0, 'emitted': 'counter.tick', 'count': 1},
+            {'at': 0, 'call': 'counter.get', 'pointer': '/n', 'equals': 5}])
         first = self.write('first', b=good)
-        self.write('first/sub', a=bad)
+        self.write('first/a', c=bad)
+        with open(os.path.join(first, 'notes.txt'), 'w') as f:
+            f.write('not a trace bundle')
         second = self.write('second', a=good)
         code, out, _ = self.run_main(first, second)
         self.assertEqual(out.splitlines(), [
-            'PASS conformance/ok.json (counter)',
             'FAIL conformance/bad.json (counter)',
+            '  expect[1]: counter.get /n: expected 5, got 0',
             '  expect[0]: counter.tick : expected 1, got 0',
+            'PASS conformance/ok.json (counter)',
             'PASS conformance/ok.json (counter)',
             'python: 2 passed, 1 failed',
         ])
+        self.assertEqual(code, 1)
+
+    def test_bundles_load_in_debug_mode_with_host_and_params(self):
+        tb = {'trace': 'conformance/odd.json', 'contract': 'odd_api',
+              'implementation': 'odd', 'ticks': 1, 'bundle': odd_bundle(),
+              'inputs': [],
+              'expect': [{'at': 0, 'call': 'odd.echo', 'params': {'k': 1},
+                          'equals': [{'k': 1}, {}]}]}
+        code, out, _ = self.run_main(self.write('odd', odd=tb))
+        self.assertEqual(out, 'FAIL conformance/odd.json (odd)\n'
+                              '  error: event not JSON: odd.pair\n'
+                              'python: 0 passed, 1 failed\n')
         self.assertEqual(code, 1)
 
     def test_a_file_that_is_not_a_trace_bundle_fails(self):
@@ -244,11 +291,12 @@ class ConformanceTests(unittest.TestCase):
         self.assertFalse(equal({}, []))
 
     def test_get_pointer_follows_rfc_6901(self):
-        value = {'a/b': [10, {'~': 'x'}], 'c': None}
+        value = {'a/b': [10, {'~': 'x'}], 'c': None, '~1': 'y'}
         get = conformance.get_pointer
         self.assertIs(get(value, ''), value)
         self.assertEqual(get(value, '/a~1b/0'), 10)
         self.assertEqual(get(value, '/a~1b/1/~0'), 'x')
+        self.assertEqual(get(value, '/~01'), 'y')
         self.assertIsNone(get(value, '/c'))
         for missing in ('/d', '/a~1b/2', '/a~1b/01', '/a~1b/-', '/c/x', 'a'):
             self.assertIs(get(value, missing), conformance.MISSING, missing)
@@ -292,6 +340,17 @@ class ConformanceTests(unittest.TestCase):
         code, err = play_main(os.path.join(folder, 'none.json'), '1')
         self.assertEqual(code, 1)
         self.assertTrue(err.startswith('play: '), err)
+
+    def test_play_py_runs_in_debug_mode_with_host(self):
+        path = os.path.join(self.write('bundles', odd=odd_bundle()),
+                            'odd.json')
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            self.assertEqual(play.main([path, '0']), 0)
+            self.assertEqual(play.main([path, '1']), 1)
+        self.assertEqual(out.getvalue(), '{"snapshot": {"odd": {"host": {}}}, '
+                                         '"events": {}}\n')
+        self.assertEqual(err.getvalue(), 'play: event not JSON: odd.pair\n')
 
 
 if __name__ == '__main__':
