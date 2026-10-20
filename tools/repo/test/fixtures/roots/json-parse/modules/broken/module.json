@@ -1,5 +1,5 @@
 {
   "id": "broken",
-  "summary": "A manifest that is not JSON",
+  "summary": "A manifest that is not JSON"
   "contract": true
 }
