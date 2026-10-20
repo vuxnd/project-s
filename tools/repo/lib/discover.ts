@@ -205,6 +205,7 @@ function checkLinks(index: RootIndex, m: ModuleInfo, problems: Problem[]): void 
   for (const list of ['requires', 'optional'] as const) {
     m[list].forEach((x, i) => {
       const pointer = `/${list}/${i}`;
+      if (list === 'optional' && x !== m.id && m.requires.includes(x)) problems.push(error(m.file, pointer, 'bad-dependency', `${x} is in both requires and optional`));
       const target = index.modules.get(x);
       if (!target) {
         problems.push(list === 'requires'
@@ -216,7 +217,6 @@ function checkLinks(index: RootIndex, m: ModuleInfo, problems: Problem[]): void 
         problems.push(error(m.file, pointer, 'bad-dependency', `${x} lists itself in ${list}`));
         return;
       }
-      if (list === 'optional' && m.requires.includes(x)) problems.push(error(m.file, pointer, 'bad-dependency', `${x} is in both requires and optional`));
       const contracts = target.implements.join(', ');
       if (contracts !== '') problems.push(error(m.file, pointer, 'require-contract', `${x} implements contract ${contracts}; require ${contracts}`));
       if (target.deprecated !== undefined) problems.push(warning(m.file, pointer, 'deprecated', `${x} is deprecated: ${target.deprecated}`));

@@ -276,6 +276,14 @@ test('types are indexed in id order with the version of properties.$version.cons
   assert.deepEqual(where(index.problems), ['missing-file modules/geo/module.json#/types/gone']);
 });
 
+test('types are sorted by the JavaScript default string order of their ids', (t) => {
+  const dir = tempRepo(t, {
+    'modules/geo/module.json': { id: 'geo', summary: 'x', types: { bx: 'schemas/a.schema.json', b_x: 'schemas/a.schema.json', b1: 'schemas/a.schema.json' } },
+    'modules/geo/schemas/a.schema.json': {},
+  });
+  assert.deepEqual([...discover(dir, '.', createValidator(dir)).types.keys()], ['geo.b1', 'geo.b_x', 'geo.bx']);
+});
+
 test('a folder without module.json, with a bad name, with another id, with the id trace, with bad JSON or a bad shape is skipped', (t) => {
   const dir = tempRepo(t, {
     'modules/Bad_Name/module.json': { id: 'bad_name', summary: 'x' },
@@ -354,6 +362,28 @@ test('a module that lists itself in requires or optional breaks bad-dependency',
   const dir = tempRepo(t, { 'modules/selfish/module.json': { id: 'selfish', summary: 'x', requires: ['selfish'], optional: ['selfish'] } });
   const index = discover(dir, '.', createValidator(dir));
   assert.deepEqual(where(index.problems), ['bad-dependency modules/selfish/module.json#/optional/0', 'bad-dependency modules/selfish/module.json#/requires/0']);
+});
+
+test('an id in both requires and optional breaks bad-dependency also when it names no module', (t) => {
+  const dir = tempRepo(t, { 'modules/user/module.json': { id: 'user', summary: 'x', requires: ['ghost'], optional: ['ghost'] } });
+  assert.deepEqual(where(discover(dir, '.', createValidator(dir)).problems), [
+    'bad-dependency modules/user/module.json#/optional/0',
+    'unknown-module modules/user/module.json#/optional/0',
+    'unknown-module modules/user/module.json#/requires/0',
+  ]);
+});
+
+test('implements naming no module is an unknown-module error', (t) => {
+  const dir = tempRepo(t, { 'modules/claims/module.json': { id: 'claims', summary: 'x', implements: ['ghost'] } });
+  const problems = discover(dir, '.', createValidator(dir)).problems;
+  assert.deepEqual(problems.map((p) => [p.rule, p.severity, p.file, p.pointer]), [['unknown-module', 'error', 'modules/claims/module.json', '/implements/0']]);
+});
+
+test('a folder with a bad name and no manifest is missing-file, the first check of step 2', (t) => {
+  const dir = tempRepo(t, {});
+  fs.mkdirSync(path.join(dir, 'modules', 'Bad'), { recursive: true });
+  fs.mkdirSync(path.join(dir, 'games', 'Bad'), { recursive: true });
+  assert.deepEqual(where(discover(dir, '.', createValidator(dir)).problems), ['missing-file games/Bad#', 'missing-file modules/Bad#']);
 });
 
 test('every kind of manifest path that names no file is a missing-file problem at its pointer', (t) => {

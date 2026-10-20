@@ -59,3 +59,8 @@ test('hasErrors is true only when an error is present', () => {
   assert.equal(hasErrors([warning('a.json', '', 'deprecated', 'm')]), false);
   assert.equal(hasErrors([warning('a.json', '', 'deprecated', 'm'), error('a.json', '', 'schema', 'm')]), true);
 });
+
+test('sortProblems uses JavaScript default string order, not locale order', () => {
+  const sorted = sortProblems([error('b.json', '', 'schema', 'm'), error('B.json', '', 'schema', 'm'), error('_a.json', '', 'schema', 'm')]);
+  assert.deepEqual(sorted.map((p) => p.file), ['B.json', '_a.json', 'b.json']);
+});

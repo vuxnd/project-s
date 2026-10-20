@@ -202,6 +202,7 @@ test('getPointer follows RFC 6901', () => {
   assert.equal(getPointer(value, '//empty'), 1);
   assert.equal(getPointer(value, '/list/1/0'), 3);
   assert.deepEqual(getPointer(value, '/list/0'), [1, 2]);
+  assert.equal(getPointer({ '~1': 'tilde-one', '/': 'slash' }, '/~01'), 'tilde-one');
 });
 
 test('getPointer returns undefined for a missing step', () => {

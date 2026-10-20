@@ -64,3 +64,10 @@ test('walkFiles lists every file below a folder as sorted posix paths', (t) => {
   assert.deepEqual(walkFiles(root), ['a.txt', 'a/b/deep.txt', 'a/mid.txt', 'c/x.txt', 'top.txt']);
   assert.deepEqual(walkFiles(path.join(root, 'a')), ['b/deep.txt', 'mid.txt']);
 });
+
+test('listings use JavaScript default string order, not file-system or locale order', (t) => {
+  const root = tempTree(t, ['alpha/x.txt', 'Zed/x.txt', '_u/x.txt', 'Beta/x.txt', 'b.txt', 'B1.txt', '_a.txt', 'Z.txt']);
+  assert.deepEqual(listDirs(root), ['Beta', 'Zed', '_u', 'alpha']);
+  assert.deepEqual(listFiles(root), ['B1.txt', 'Z.txt', '_a.txt', 'b.txt']);
+  assert.deepEqual(walkFiles(root), ['B1.txt', 'Beta/x.txt', 'Z.txt', 'Zed/x.txt', '_a.txt', '_u/x.txt', 'alpha/x.txt', 'b.txt']);
+});
