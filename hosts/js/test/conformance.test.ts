@@ -18,6 +18,7 @@ export function init() {
 export function step(ctx) {
   if (ctx.tick >= 3) throw new Error('only 3 ticks may run');
   for (const bump of ctx.events('m.bump')) ctx.state.n += bump.by;
+  ctx.state.seen = ctx.events('m.bump').map((bump) => bump.by);
   ctx.state.n += 1;
   ctx.emit('m.tock', 0);
   ctx.emit('m.tick', { n: ctx.state.n });
@@ -27,6 +28,9 @@ export const operations = {
   get: (ctx) => ({ n: ctx.state.n, list: [1.5, 2], flag: true }),
   host: (ctx) => ctx.host,
   nan: () => NaN,
+  echo: (ctx, params) => params,
+  seen: (ctx) => ctx.state.seen,
+  nil: () => null,
 };
 `;
 
@@ -39,6 +43,8 @@ const PASSING: Expectation[] = [
   { at: 3, call: 'm.get', pointer: '/list/1', near: 2.5, within: 0.5 },
   { by: 3, emitted: 'm.tick', count: 3 },
   { by: 3, emitted: 'm.bump', count: 0 },
+  { at: 0, call: 'm.get', pointer: '/n', near: 0, within: 0 },
+  { at: 0, call: 'm.nil', equals: null },
 ];
 
 // A hand-written trace bundle for the module m: 3 ticks at 10 Hz, with one m.bump of 10 given to tick 1.
@@ -52,7 +58,7 @@ function traceBundle(name: string, expect: Expectation[]): TraceBundle {
       format: 1, game: `counting.${name}`, host: 'node', fixedHz: 10,
       modules: [{ id: 'm', entry: 'm/ts/index.ts', sees: ['m'], absent: [], packages: [] }],
       contracts: {},
-      operations: { 'm.get': 'm', 'm.host': 'm', 'm.nan': 'm' },
+      operations: { 'm.get': 'm', 'm.host': 'm', 'm.nan': 'm', 'm.echo': 'm', 'm.seen': 'm', 'm.nil': 'm' },
       events: { 'm.tick': 'm', 'm.tock': 'm', 'm.bump': 'm' },
       types: {}, config: { m: {} }, records: {}, assets: [],
       schedule: { fixed: ['m.step'], frame: [] },
@@ -173,6 +179,21 @@ test('at each tick call expectations are checked before count expectations, each
   ]);
 });
 
+test('a call passes its params, and the inputs of one tick arrive in file order', async (t) => {
+  const tb = traceBundle('given', [
+    { at: 0, call: 'm.echo', params: { k: [1, 'x'] }, equals: { k: [1, 'x'] } },
+    { at: 1, call: 'm.seen', equals: [5] },
+    { at: 2, call: 'm.seen', equals: [20, 10] },
+    { at: 3, call: 'm.echo', params: 7, equals: 8 },
+  ]);
+  tb.inputs = [
+    { at: 1, event: 'm.bump', payload: { by: 20 } },
+    { at: 0, event: 'm.bump', payload: { by: 5 } },
+    { at: 1, event: 'm.bump', payload: { by: 10 } },
+  ];
+  assert.deepEqual(await linesOf(tempRoot(t), tb), ['FAIL conformance/given.json (m)', '  expect[3]: m.echo : expected 8, got 7']);
+});
+
 test('a bundle for another host fails with wrong host and does not load', async (t) => {
   const tb = traceBundle('host', PASSING);
   tb.bundle.host = 'python';
@@ -289,12 +310,12 @@ test('main runs files in sorted posix order within a directory and directories i
   writeFiles(root, 'first', { 'b.json': traceBundle('first_b', PASSING), 'notes.txt': 'not a trace bundle' });
   writeFiles(root, 'first/a', { 'c.json': bad });
   writeFiles(root, 'second', { 'a.json': traceBundle('second_a', PASSING) });
-  const { code, out } = await runMain(root, 'first', 'second');
+  const { code, out } = await runMain(root, 'second', 'first');
   assert.deepEqual(out, [
+    'PASS conformance/second_a.json (m)',
     'FAIL conformance/first_a_c.json (m)',
     '  expect[0]: m.get /n: expected 5, got 0',
     'PASS conformance/first_b.json (m)',
-    'PASS conformance/second_a.json (m)',
     'node: 2 passed, 1 failed',
   ]);
   assert.equal(code, 1);
