@@ -1,0 +1,7 @@
+{
+  "$schema": "../../../../../../../../schemas/module.schema.json",
+  "id": "pack",
+  "summary": "Declares the record type spawn, which refers to geo bodies, and holds a crate.",
+  "requires": ["geo"],
+  "types": { "spawn": "schemas/spawn.schema.json" }
+}

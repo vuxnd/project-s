@@ -1,0 +1,6 @@
+{
+  "$comment": "A clean content root; the record crate uses the deprecated property legacy.",
+  "errors": [],
+  "warnings": ["deprecated"],
+  "generated": false
+}

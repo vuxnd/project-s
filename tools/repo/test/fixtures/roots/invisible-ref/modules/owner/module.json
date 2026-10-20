@@ -1,0 +1,5 @@
+{
+  "id": "owner",
+  "summary": "Declares the record type item.",
+  "types": { "item": "schemas/item.schema.json" }
+}

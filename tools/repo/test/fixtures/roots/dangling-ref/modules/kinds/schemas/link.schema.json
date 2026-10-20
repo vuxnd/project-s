@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Link",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$version", "target"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "$version": { "const": 1 },
+    "$comment": { "type": "string" },
+    "target": { "type": "string", "x-ref": "kinds.item" }
+  }
+}

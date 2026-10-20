@@ -1,0 +1,6 @@
+{
+  "$schema": "../../../../../../../../schemas/module.schema.json",
+  "id": "geo",
+  "summary": "Declares the record type body and a vec3 schema reached through $ref.",
+  "types": { "body": "schemas/body.schema.json" }
+}

@@ -1,0 +1,5 @@
+{
+  "$schema": "../../schemas/body.schema.json",
+  "$version": 1,
+  "size": [1, 1, 1]
+}

@@ -1,0 +1,6 @@
+{
+  "$comment": "pack has a record in content/ghost.item, a type nobody declares.",
+  "errors": ["unknown-type"],
+  "warnings": [],
+  "generated": false
+}

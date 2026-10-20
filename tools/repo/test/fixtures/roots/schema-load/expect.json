@@ -1,0 +1,6 @@
+{
+  "$comment": "The type schema of bad has minLength -1, which follows the profile and breaks the meta-schema.",
+  "errors": ["schema-load"],
+  "warnings": [],
+  "generated": false
+}

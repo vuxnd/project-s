@@ -1,0 +1,6 @@
+{
+  "$comment": "The type schema of shapeless has no $version.",
+  "errors": ["record-type"],
+  "warnings": [],
+  "generated": false
+}

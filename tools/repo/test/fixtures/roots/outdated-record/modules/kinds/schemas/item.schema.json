@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Item",
+  "description": "Version 2 renamed name to label.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$version", "label"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "$version": { "const": 2 },
+    "$comment": { "type": "string" },
+    "label": { "type": "string" }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "$comment": "stranger requires nothing, yet its event schema, an x-ref and a record all reach owner's item type.",
+  "errors": ["invisible-ref"],
+  "warnings": [],
+  "generated": false
+}

@@ -1,0 +1,5 @@
+{
+  "id": "art",
+  "summary": "Declares the record type model, whose file is a GLB asset.",
+  "types": { "model": "schemas/model.schema.json" }
+}

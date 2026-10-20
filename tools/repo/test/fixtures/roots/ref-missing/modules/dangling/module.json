@@ -1,0 +1,5 @@
+{
+  "id": "dangling",
+  "summary": "Declares a record type whose schema points at a missing schema file.",
+  "types": { "item": "schemas/item.schema.json" }
+}

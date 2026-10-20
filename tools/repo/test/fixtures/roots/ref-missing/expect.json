@@ -1,0 +1,6 @@
+{
+  "$comment": "The type schema of dangling has a $ref to a file that does not exist.",
+  "errors": ["ref-missing"],
+  "warnings": [],
+  "generated": false
+}

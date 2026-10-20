@@ -1,0 +1,5 @@
+{
+  "id": "stranger",
+  "summary": "Uses owner's data without requiring owner.",
+  "events": { "thing": "schemas/thing.schema.json" }
+}

@@ -1,0 +1,6 @@
+{
+  "$comment": "kinds.item is at version 2 and the module has no migrations folder.",
+  "errors": ["migration-missing"],
+  "warnings": [],
+  "generated": false
+}

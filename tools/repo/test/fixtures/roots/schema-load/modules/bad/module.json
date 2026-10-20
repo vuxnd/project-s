@@ -1,0 +1,5 @@
+{
+  "id": "bad",
+  "summary": "Declares a record type whose schema cannot be compiled.",
+  "types": { "item": "schemas/item.schema.json" }
+}
