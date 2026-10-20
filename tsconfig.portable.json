@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "lib": ["es2024"], "types": [] },
+  "include": [
+    "portable.d.ts",
+    "hosts/js/runtime.ts",
+    "hosts/js/trace.ts",
+    "modules/*/ts/**/*.ts",
+    "examples/modules/*/ts/**/*.ts",
+    "hosts/conformance/modules/*/ts/**/*.ts",
+    "modules/*/migrations/**/*.ts",
+    "examples/modules/*/migrations/**/*.ts",
+    "hosts/conformance/modules/*/migrations/**/*.ts"
+  ]
+}
