@@ -1,0 +1,6 @@
+{
+  "$comment": "Three art.model records name a missing file, a file with the wrong extension and a path with a .. segment.",
+  "errors": ["asset-missing"],
+  "warnings": [],
+  "generated": false
+}

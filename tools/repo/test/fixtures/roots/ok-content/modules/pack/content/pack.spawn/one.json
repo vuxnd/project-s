@@ -1,0 +1,6 @@
+{
+  "$schema": "../../schemas/spawn.schema.json",
+  "$version": 1,
+  "body": "pack/crate",
+  "position": [0, 5, 0]
+}

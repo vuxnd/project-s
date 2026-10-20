@@ -1,0 +1,5 @@
+{
+  "id": "shapeless",
+  "summary": "Declares a record type whose schema lacks the record envelope.",
+  "types": { "item": "schemas/item.schema.json" }
+}

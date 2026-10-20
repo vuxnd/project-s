@@ -1,0 +1,6 @@
+{
+  "$comment": "kinds.item is at version 2 with its migration files; the record old.json is still at version 1.",
+  "errors": ["outdated-record"],
+  "warnings": [],
+  "generated": false
+}

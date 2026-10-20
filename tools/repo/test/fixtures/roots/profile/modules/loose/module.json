@@ -1,0 +1,5 @@
+{
+  "id": "loose",
+  "summary": "Declares an event whose schema uses anyOf.",
+  "events": { "thing": "schemas/thing.schema.json" }
+}

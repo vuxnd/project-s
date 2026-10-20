@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Body",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$version", "size"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "$version": { "const": 1 },
+    "$comment": { "type": "string" },
+    "size": { "$ref": "vec3.schema.json", "description": "Full extents.", "x-unit": "m" },
+    "model": { "type": "string", "x-asset": ["glb"] },
+    "legacy": { "type": "string", "deprecated": true, "description": "Use model." }
+  }
+}

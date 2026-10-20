@@ -1,0 +1,6 @@
+{
+  "$comment": "loose uses anyOf in an event schema, which the schema profile does not allow.",
+  "errors": ["profile"],
+  "warnings": [],
+  "generated": false
+}

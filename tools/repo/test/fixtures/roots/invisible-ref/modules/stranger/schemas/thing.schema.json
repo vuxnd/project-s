@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Thing",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["owned", "target"],
+  "properties": {
+    "owned": { "$ref": "../../owner/schemas/item.schema.json" },
+    "target": { "type": "string", "x-ref": "owner.item" }
+  }
+}

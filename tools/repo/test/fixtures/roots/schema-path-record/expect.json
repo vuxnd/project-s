@@ -1,0 +1,6 @@
+{
+  "$comment": "The record one.json has a $schema that is not the relative path to its type schema.",
+  "errors": ["schema-path"],
+  "warnings": [],
+  "generated": false
+}

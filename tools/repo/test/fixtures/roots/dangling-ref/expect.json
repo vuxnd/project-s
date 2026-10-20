@@ -1,0 +1,6 @@
+{
+  "$comment": "The kinds.link record one.json points at kinds/nothing, a kinds.item record that does not exist.",
+  "errors": ["dangling-ref"],
+  "warnings": [],
+  "generated": false
+}

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Model",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$version", "file"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "$version": { "const": 1 },
+    "$comment": { "type": "string" },
+    "file": { "type": "string", "x-asset": ["glb"] }
+  }
+}
