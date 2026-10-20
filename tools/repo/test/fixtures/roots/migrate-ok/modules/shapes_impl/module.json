@@ -1,0 +1,6 @@
+{
+  "id": "shapes_impl",
+  "summary": "Implements shapes on node.",
+  "implements": ["shapes"],
+  "hosts": { "node": "ts/index.ts" }
+}

@@ -1,0 +1,7 @@
+{
+  "id": "shapes",
+  "summary": "Boxes stored by half extents; size reports the full size of the first box.",
+  "contract": true,
+  "types": { "box": "schemas/box.schema.json" },
+  "operations": { "size": { "result": "schemas/size.schema.json" } }
+}

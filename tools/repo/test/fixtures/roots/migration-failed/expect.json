@@ -1,0 +1,6 @@
+{
+  "$comment": "kinds.item is at version 2 and its migration throws; one.json is still at version 1. Only npm run migrate reports migration-failed.",
+  "errors": ["outdated-record"],
+  "warnings": [],
+  "generated": false
+}
