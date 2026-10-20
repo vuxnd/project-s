@@ -207,6 +207,15 @@ test('a file reached through $ref is checked once, as part of the module whose f
   assert.deepEqual(problems.map((p) => `${p.rule} ${p.file}#${p.pointer}`), ['invisible-ref modules/a/schemas/shared.schema.json#/x-ref']);
 });
 
+test('profile errors in a file reached only through $ref are reported at that file and pointer', (t) => {
+  const dir = tempRepo(t, {
+    'modules/m/module.json': mod('m', { events: { e: 'schemas/e.schema.json' } }),
+    'modules/m/schemas/e.schema.json': { $schema: DRAFT, type: 'object', additionalProperties: false, properties: { x: { $ref: 'extra.schema.json' } } },
+    'modules/m/schemas/extra.schema.json': { $schema: DRAFT, type: 'object', additionalProperties: false, properties: { v: { anyOf: [{ type: 'string' }] }, w: { type: 'string', 'x-asset': ['gltf'] } } },
+  });
+  assert.deepEqual(where(run(dir).problems), ['profile modules/m/schemas/extra.schema.json#/properties/v', 'profile modules/m/schemas/extra.schema.json#/properties/w']);
+});
+
 test('a $ref to a missing file, a missing $defs entry or a file outside the repository is ref-missing at the $ref', (t) => {
   const object = (properties: Record<string, Json>): Json => ({ $schema: DRAFT, type: 'object', additionalProperties: false, properties, $defs: { yes: { type: 'string' } } });
   const outside = `repo-outside-${process.pid}.schema.json`;   // exists, next to the temporary repository
@@ -381,6 +390,17 @@ test('an x-ref to a record that fails its own checks is not dangling', (t) => {
   assert.deepEqual(records.map((r) => r.id), ['m/one']);
 });
 
+test('annotations are checked only after the record validates', (t) => {
+  const dir = tempRepo(t, {
+    'modules/m/module.json': mod('m', { types: { link: 'schemas/link.schema.json' } }),
+    'modules/m/schemas/link.schema.json': recordType({ target: { type: 'string', 'x-ref': 'm.link' }, pic: { type: 'string', 'x-asset': ['png'] } }, { required: [] }),
+    'modules/m/content/m.link/one.json': { $version: 1, target: 'm/ghost', pic: 'assets/none.png', other: 1 },
+  });
+  const { records, problems } = run(dir);
+  assert.deepEqual(where(problems), ['schema modules/m/content/m.link/one.json#']);
+  assert.deepEqual(records, []);
+});
+
 test('x-ref targets must lie in a module the record requires or implements; optional is not enough', (t) => {
   const dir = tempRepo(t, {
     'modules/b/module.json': mod('b', { types: { thing: 'schemas/thing.schema.json' } }),
@@ -458,6 +478,34 @@ test('the annotation walk follows properties, items, map values and $ref; errors
     map: { k: 'm/b' },
   });
   assert.deepEqual(a?.assets, ['modules/m/assets/x.PNG', 'modules/m/assets/y.png', 'modules/m/assets/z.jpg']);
+});
+
+test('the annotation walk follows a $ref into another file and the $refs inside that file', (t) => {
+  const dir = tempRepo(t, {
+    'modules/m/module.json': mod('m', { types: { item: 'schemas/item.schema.json', thing: 'schemas/thing.schema.json' } }),
+    'modules/m/schemas/item.schema.json': recordType({ name: { type: 'string' } }),
+    'modules/m/schemas/thing.schema.json': recordType({
+      pic: { $ref: 'other.schema.json#/$defs/pic' },
+      model: { $ref: 'model.schema.json' },
+      link: { $ref: 'other.schema.json#/$defs/link' },
+      old: { $ref: 'other.schema.json#/$defs/old' },
+    }, { required: [] }),
+    'modules/m/schemas/other.schema.json': { $schema: DRAFT, $defs: { pic: { type: 'string', 'x-asset': ['png'] }, link: { type: 'string', 'x-ref': 'm.item' }, old: { type: 'string', deprecated: true } } },
+    'modules/m/schemas/model.schema.json': { $schema: DRAFT, $ref: '#/$defs/m', $defs: { m: { type: 'string', 'x-asset': ['glb'] } } },
+    'modules/m/assets/a.png': 'x\n',
+    'modules/m/assets/b.glb': 'x\n',
+    'modules/m/content/m.item/i.json': { $version: 1, name: 'i' },
+    'modules/m/content/m.thing/good.json': { $version: 1, pic: 'assets/a.png', model: 'assets/b.glb', link: 'm/i', old: 'x' },
+    'modules/m/content/m.thing/bad.json': { $version: 1, pic: 'assets/none.png', model: 'assets/none.glb', link: 'm/ghost' },
+  });
+  const { records, problems } = run(dir);
+  assert.deepEqual(problems.map((p) => `${p.severity} ${p.rule} ${p.file}#${p.pointer}`).sort(), [
+    'error asset-missing modules/m/content/m.thing/bad.json#/model',
+    'error asset-missing modules/m/content/m.thing/bad.json#/pic',
+    'error dangling-ref modules/m/content/m.thing/bad.json#/link',
+    'warning deprecated modules/m/content/m.thing/good.json#/old',
+  ]);
+  assert.deepEqual(records.find((r) => r.id === 'm/good')?.body, { pic: 'modules/m/assets/a.png', model: 'modules/m/assets/b.glb', link: 'm/i', old: 'x' });
 });
 
 function traceSource(type: string, name: string, value: JsonObject): RecordSource {
