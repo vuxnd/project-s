@@ -1,0 +1,8 @@
+{
+  "$schema": "../../../../../../../../schemas/module.schema.json",
+  "id": "a",
+  "summary": "Type x_params and the params of operation x both generate XParams.",
+  "contract": true,
+  "types": { "x_params": "schemas/x_params.schema.json" },
+  "operations": { "x": { "params": "schemas/params.schema.json" } }
+}

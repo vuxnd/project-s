@@ -1,0 +1,6 @@
+{
+  "$comment": "Module a imports left-pad and node:fs and lists no packages.",
+  "errors": ["undeclared-package"],
+  "warnings": [],
+  "generated": false
+}

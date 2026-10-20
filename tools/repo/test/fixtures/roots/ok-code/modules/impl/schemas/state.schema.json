@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "State",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["calls", "seen"],
+  "properties": {
+    "calls": { "type": "integer", "minimum": 0 },
+    "seen": {
+      "description": "How often each text was echoed.",
+      "type": "object",
+      "propertyNames": { "type": "string" },
+      "additionalProperties": { "type": "integer", "minimum": 1 }
+    },
+    "last": { "type": ["string", "null"] }
+  }
+}

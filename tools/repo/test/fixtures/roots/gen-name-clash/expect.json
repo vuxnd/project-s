@@ -1,0 +1,6 @@
+{
+  "$comment": "Type x_params and the params of operation x both generate XParams.",
+  "errors": ["gen-name-clash"],
+  "warnings": [],
+  "generated": true
+}

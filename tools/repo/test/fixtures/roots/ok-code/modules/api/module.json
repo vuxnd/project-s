@@ -1,0 +1,12 @@
+{
+  "$schema": "../../../../../../../../schemas/module.schema.json",
+  "id": "api",
+  "summary": "A contract with a record type, an event, an operation and a config.",
+  "contract": true,
+  "types": { "item": "schemas/item.schema.json" },
+  "events": { "ping": "schemas/ping.schema.json" },
+  "operations": {
+    "echo": { "params": "schemas/echo_params.schema.json", "result": "schemas/echo_result.schema.json" }
+  },
+  "config": { "schema": "schemas/config.schema.json", "defaults": { "greeting": "hello" } }
+}

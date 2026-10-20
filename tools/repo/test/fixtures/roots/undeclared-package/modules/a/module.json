@@ -1,0 +1,7 @@
+{
+  "$schema": "../../../../../../../../schemas/module.schema.json",
+  "id": "a",
+  "summary": "Imports left-pad and node:fs without listing them.",
+  "hosts": { "node": "ts/index.ts" },
+  "packages": []
+}

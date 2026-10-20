@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Echo result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["text", "length"],
+  "properties": {
+    "text": { "type": "string" },
+    "length": { "type": "integer", "minimum": 0 }
+  }
+}

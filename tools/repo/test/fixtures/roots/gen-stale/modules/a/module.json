@@ -1,0 +1,7 @@
+{
+  "$schema": "../../../../../../../../schemas/module.schema.json",
+  "id": "a",
+  "summary": "Its types.gen.ts was edited by hand.",
+  "contract": true,
+  "events": { "ping": "schemas/ping.schema.json" }
+}

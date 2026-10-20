@@ -1,0 +1,6 @@
+{
+  "$comment": "Event tree refers to its own schema, which the generator cannot express.",
+  "errors": ["gen-unsupported"],
+  "warnings": [],
+  "generated": true
+}
