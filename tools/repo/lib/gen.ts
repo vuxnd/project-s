@@ -15,7 +15,7 @@ interface Expr { text: string; union: boolean; doc?: string }
 interface Place { file: string; pointer: string }   // where a node lives, for problems
 
 const ENVELOPE = ['$schema', '$version', '$comment'];
-const FIXED_NAMES = ['Config', 'State', 'Operations', 'Ctx', 'RuntimeCtx'];
+const FIXED_NAMES = ['Config', 'State', 'Operations', 'Ctx', 'RuntimeCtx', 'Record'];
 const UNKNOWN: Expr = { text: 'unknown', union: false };
 const NO_PROPERTIES: Expr = { text: 'Record<string, never>', union: false };
 const BARE_KEY = /^[A-Za-z_$][A-Za-z0-9_$]*$/;
@@ -48,11 +48,11 @@ function createRenderer(repoRoot: string): (schema: string, from: Place, record:
   const docs = new Map<string, JsonObject>();
   const open: string[] = [];   // `file#fragment` of the $refs being expanded, to find recursion
 
-  function load(file: string, from: Place): JsonObject {
+  function load(file: string, from: Place, missing: Rule = 'missing-file'): JsonObject {
     const known = docs.get(file);
     if (known) return known;
     const abs = absPath(repoRoot, file);
-    if (!isFile(abs)) return fail('missing-file', from, `${file} does not exist`);
+    if (!isFile(abs)) return fail(missing, from, `${file} does not exist`);
     const parsed = readJson(abs);
     if (!parsed.ok) return fail('json-parse', { file, pointer: '' }, parsed.message, parsed.line);
     if (!isObject(parsed.value)) return fail('gen-unsupported', { file, pointer: '' }, 'a schema must be an object');
@@ -65,7 +65,7 @@ function createRenderer(repoRoot: string): (schema: string, from: Place, record:
     const file = filePart === '' ? at.file : joinPosix(path.posix.dirname(at.file), filePart);
     const key = `${file}#${fragment}`;
     if (open.includes(key)) return fail('gen-unsupported', at, `recursive $ref ${ref}`);
-    const target = getPointer(load(file, at), fragment);
+    const target = getPointer(load(file, at, 'ref-missing'), fragment);
     if (target === undefined) return fail('ref-missing', at, `${ref} does not exist`);
     open.push(key);
     try {

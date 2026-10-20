@@ -56,6 +56,10 @@ const CASES: [name: string, source: string, expected: string[]][] = [
   ['a regex ends at an unescaped slash outside a class, then its flags', "const re = /\\/'/gi; import './a.ts';", ['1:./a.ts']],
   ['a regex without a closing slash ends at the end of its line', "const re = /abc\nimport './a.ts';", ['2:./a.ts']],
   ['a regex at the start of the source', "/import y from '\\.\\/hidden\\.ts'/; import './seen.ts';", ['1:./seen.ts']],
+  ['a [ ] class keeps a slash and quotes inside the regex', "const re = /[/'\"]/; import './a.ts';", ['1:./a.ts']],
+  ['the search for from stops at a ;, and import.meta is skipped without one', lines(
+    'export { z };', "import y from './y.ts';", 'const u = import.meta.url', "import w from './w.ts';",
+  ), ['2:./y.ts', '4:./w.ts']],
 
   ['every import form', lines(
     "import a from './a.ts';", "import * as b from './b.ts';", "import { c } from './c.ts';", "import d, { e } from './d.ts';", "import type F from './f.ts';",

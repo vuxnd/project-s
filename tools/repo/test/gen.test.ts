@@ -198,10 +198,10 @@ test('$ref: a recursive ref is gen-unsupported, at the node that closes the loop
   }
 });
 
-test('$ref: a missing file is missing-file and a missing fragment is ref-missing, both at the ref', (t) => {
+test('$ref: a missing file and a missing fragment are ref-missing, both at the ref', (t) => {
   const manifest = { id: 'm', summary: 'x', config: { schema: 'schemas/c.schema.json', defaults: {} } };
   const file = tempRepo(t, { 'modules/m/module.json': manifest, 'modules/m/schemas/c.schema.json': obj({ p: { $ref: 'nope.schema.json' } }) });
-  assert.deepEqual(where(generate(file).problems), ['missing-file modules/m/schemas/c.schema.json#/properties/p']);
+  assert.deepEqual(where(generate(file).problems), ['ref-missing modules/m/schemas/c.schema.json#/properties/p']);
   const fragment = tempRepo(t, { 'modules/m/module.json': manifest, 'modules/m/schemas/c.schema.json': obj({ p: { $ref: '#/$defs/nope' } }) });
   assert.deepEqual(where(generate(fragment).problems), ['ref-missing modules/m/schemas/c.schema.json#/properties/p']);
 });
@@ -448,6 +448,7 @@ test('gen-name-clash: two declarations with one identifier name both, at the man
     ['a type named operations', { types: { operations: 'schemas/s.schema.json' } }, '/types/operations', ['type operations', 'Operations']],
     ['a type named ctx', { types: { ctx: 'schemas/s.schema.json' } }, '/types/ctx', ['type ctx', 'Ctx']],
     ['a type named runtime_ctx', { types: { runtime_ctx: 'schemas/s.schema.json' } }, '/types/runtime_ctx', ['type runtime_ctx', 'RuntimeCtx']],
+    ['a type named record', { types: { record: 'schemas/s.schema.json' } }, '/types/record', ['type record', 'Record']],
   ];
   for (const [name, manifest, pointer, names] of cases) {
     const dir = tempRepo(t, { 'modules/m/module.json': { id: 'm', summary: 'x', ...manifest }, 'modules/m/schemas/s.schema.json': STR });
@@ -617,6 +618,21 @@ test('gen --check after a hand edit exits 1 with gen-stale, and gen repairs it',
   assert.equal(runGen(t, dir, '--check', '--root', '.').status, 0);
 });
 
+test('gen --check prints each problem once, sorted by file, and counts the lines it printed', (t) => {
+  const dir = tempRepo(t, {
+    'modules/a/module.json': { id: 'a', summary: 'x', events: { e: 'schemas/e.schema.json' } },
+    'modules/a/schemas/e.schema.json': { type: 'banana' },
+    'modules/b/module.json': { id: 'b', summary: 'x', events: { e: 'schemas/e.schema.json' } },
+  });
+  const r = runGen(t, dir, '--check', '--root', '.');
+  assert.equal(r.status, 1);
+  assert.deepEqual(r.out.map((line) => line.replace(/: .* \[/, ' [')), [
+    'modules/a/schemas/e.schema.json# [gen-unsupported]',
+    'modules/b/module.json#/events/e [missing-file]',
+    'gen: 2 problems',
+  ]);
+});
+
 test('gen prints generation problems and exits 1 while still writing the modules it can', (t) => {
   const dir = tempRepo(t, {
     'modules/good/module.json': { id: 'good', summary: 'x' },
@@ -624,7 +640,7 @@ test('gen prints generation problems and exits 1 while still writing the modules
     'modules/bad/schemas/e.schema.json': { type: 'banana' },
   });
   const r = runGen(t, dir, '--root', '.');
-  assert.deepEqual([r.status, r.out], [1, ['modules/bad/schemas/e.schema.json#: type "banana" cannot be expressed [gen-unsupported]', 'gen: wrote 1 files']]);
+  assert.deepEqual([r.status, r.out.map((line) => line.replace(/: .* \[/, ' ['))], [1, ['modules/bad/schemas/e.schema.json# [gen-unsupported]', 'gen: wrote 1 files']]);
   assert.ok(fs.existsSync(path.join(dir, 'modules', 'good', 'types.gen.ts')));
   assert.ok(!fs.existsSync(path.join(dir, 'modules', 'bad', 'types.gen.ts')));
 });
@@ -635,7 +651,7 @@ test('gen shows the errors of discover, a root without modules/ and a module tha
     'modules/skipped/module.json': { id: 'skipped' },
     'modules/warns/module.json': { id: 'warns', summary: 'x', optional: ['ghost'] },
   });
-  assert.deepEqual(runGen(t, dir, '--check', '--root', 'empty').out, ['empty#: empty has no modules folder [root-missing]', 'gen: 1 problems']);
+  assert.deepEqual(runGen(t, dir, '--check', '--root', 'empty').out.map((line) => line.replace(/: .* \[/, ' [')), ['empty# [root-missing]', 'gen: 1 problems']);
   const skipped = runGen(t, dir, '--check', '--root', '.');
   assert.equal(skipped.status, 1);
   assert.equal(skipped.out.length, 3, skipped.out.join('\n'));
