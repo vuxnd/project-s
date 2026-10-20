@@ -1,0 +1,7 @@
+{
+  "$schema": "../../../../../../../../schemas/module.schema.json",
+  "id": "impl",
+  "summary": "Implements api.",
+  "implements": ["api"],
+  "hosts": { "node": "ts/index.ts" }
+}

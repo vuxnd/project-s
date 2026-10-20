@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Item",
+  "description": "Something the trace hands to the implementation.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$version", "name"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "$version": { "const": 1 },
+    "$comment": { "type": "string" },
+    "name": { "type": "string" },
+    "weight": { "type": "number", "minimum": 0, "x-unit": "kg" }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "$schema": "../../../../../../../../schemas/module.schema.json",
+  "id": "api",
+  "summary": "A contract with a record type, an event and an operation, pinned by one trace.",
+  "contract": true,
+  "types": { "item": "schemas/item.schema.json" },
+  "events": { "ping": "schemas/ping.schema.json" },
+  "operations": { "count": { "result": "schemas/count.schema.json" } }
+}

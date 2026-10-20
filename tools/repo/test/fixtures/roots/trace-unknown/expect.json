@@ -1,0 +1,6 @@
+{
+  "$comment": "The trace bad.json calls api.nothing, which api does not declare.",
+  "errors": ["trace-unknown"],
+  "warnings": [],
+  "generated": false
+}

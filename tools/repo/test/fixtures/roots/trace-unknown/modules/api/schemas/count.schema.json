@@ -1,0 +1,7 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Count",
+  "description": "How many pings were counted.",
+  "type": "integer",
+  "minimum": 0
+}

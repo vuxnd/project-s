@@ -1,0 +1,7 @@
+{
+  "$schema": "../../../../../../../../../schemas/trace.schema.json",
+  "summary": "One expectation has both at and emitted.",
+  "fixedHz": 60,
+  "ticks": 2,
+  "expect": [{ "at": 2, "emitted": "api.ping", "count": 0 }]
+}
