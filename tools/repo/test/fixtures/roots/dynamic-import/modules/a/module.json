@@ -1,0 +1,6 @@
+{
+  "$schema": "../../../../../../../../schemas/module.schema.json",
+  "id": "a",
+  "summary": "Calls import() with a variable.",
+  "hosts": { "node": "ts/index.ts" }
+}

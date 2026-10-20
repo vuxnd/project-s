@@ -1,0 +1,6 @@
+{
+  "$schema": "../../../../../../../../schemas/module.schema.json",
+  "id": "a",
+  "summary": "Imports a file of module b.",
+  "hosts": { "node": "ts/index.ts" }
+}

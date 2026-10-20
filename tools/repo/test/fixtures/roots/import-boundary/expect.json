@@ -1,0 +1,6 @@
+{
+  "$comment": "Module a imports a file of module b.",
+  "errors": ["import-boundary"],
+  "warnings": [],
+  "generated": false
+}

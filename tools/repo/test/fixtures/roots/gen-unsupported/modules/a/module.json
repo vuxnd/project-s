@@ -1,0 +1,7 @@
+{
+  "$schema": "../../../../../../../../schemas/module.schema.json",
+  "id": "a",
+  "summary": "Event tree refers to its own schema.",
+  "contract": true,
+  "events": { "tree": "schemas/tree.schema.json" }
+}

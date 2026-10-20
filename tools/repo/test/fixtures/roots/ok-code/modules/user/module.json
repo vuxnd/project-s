@@ -1,0 +1,8 @@
+{
+  "$schema": "../../../../../../../../schemas/module.schema.json",
+  "id": "user",
+  "summary": "Calls api.echo from a fixed system.",
+  "requires": ["api"],
+  "systems": [{ "name": "use", "loop": "fixed" }],
+  "hosts": { "node": "ts/index.ts" }
+}

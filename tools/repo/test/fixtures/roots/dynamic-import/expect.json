@@ -1,0 +1,6 @@
+{
+  "$comment": "Module a calls import() with a variable.",
+  "errors": ["dynamic-import"],
+  "warnings": [],
+  "generated": false
+}

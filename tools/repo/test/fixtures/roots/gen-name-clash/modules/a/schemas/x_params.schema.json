@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "X params",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$version", "n"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "$version": { "const": 1 },
+    "$comment": { "type": "string" },
+    "n": { "type": "integer" }
+  }
+}

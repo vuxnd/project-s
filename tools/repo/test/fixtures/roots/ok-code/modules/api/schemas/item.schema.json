@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Item",
+  "description": "Something that can be carried.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$version", "name", "kind", "weight"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "$version": { "const": 1 },
+    "$comment": { "type": "string" },
+    "name": { "type": "string" },
+    "kind": { "type": "string", "enum": ["tool", "food"] },
+    "weight": { "description": "Mass in kilograms.", "type": "number", "minimum": 0, "x-unit": "kg" },
+    "size": { "type": "array", "items": { "type": "number" }, "minItems": 3, "maxItems": 3 },
+    "tags": { "type": "array", "items": { "type": "string" } }
+  }
+}

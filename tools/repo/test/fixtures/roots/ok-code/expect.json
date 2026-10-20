@@ -1,0 +1,6 @@
+{
+  "$comment": "A clean root with code: a contract, an implementation that satisfies it, a user, and committed types.gen.ts files.",
+  "errors": [],
+  "warnings": [],
+  "generated": true
+}

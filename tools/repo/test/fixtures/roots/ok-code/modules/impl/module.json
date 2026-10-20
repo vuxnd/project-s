@@ -1,0 +1,8 @@
+{
+  "$schema": "../../../../../../../../schemas/module.schema.json",
+  "id": "impl",
+  "summary": "Implements api; counts the calls it answers.",
+  "implements": ["api"],
+  "state": "schemas/state.schema.json",
+  "hosts": { "node": "ts/index.ts" }
+}
