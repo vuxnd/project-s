@@ -280,6 +280,24 @@ test('one-provider counts and sorts the implementations, picks none, and keeps t
   assert.deepEqual(resolution.order, ['impl_a', 'impl_b', 'impl_c']);
 });
 
+test('provider candidates are the entries built for the host only, so one implementation per host is no conflict', (t) => {
+  const index = load(t, {
+    ...contract('api'),
+    ...code('impl_n', { implements: ['api'] }),
+    ...code('impl_w', { implements: ['api'], hosts: { web: 'web/index.ts' } }),
+    ...code('user', { requires: ['api'], hosts: { node: 'ts/index.ts', web: 'ts/index.ts' } }),
+    ...game(['node', 'web'], { user: {}, impl_n: { hosts: ['node'] }, impl_w: { hosts: ['web'] } }),
+  });
+  const node = resolveDemo(index, 'node');
+  assert.deepEqual(node.problems, []);
+  assert.deepEqual(node.selected, ['api', 'impl_n', 'user']);
+  assert.deepEqual(node.contracts, { api: 'impl_n' });
+  const web = resolveDemo(index, 'web');
+  assert.deepEqual(web.problems, []);
+  assert.deepEqual(web.selected, ['api', 'impl_w', 'user']);
+  assert.deepEqual(web.contracts, { api: 'impl_w' });
+});
+
 test('a contract listed in the composition only sets its config and is selected once an implementation is', (t) => {
   const index = load(t, {
     ...contract('api'),
