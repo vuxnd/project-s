@@ -1,0 +1,6 @@
+{
+  "$comment": "a.x runs after b.y and b.y runs after a.x.",
+  "errors": ["cycle"],
+  "warnings": [],
+  "generated": false
+}

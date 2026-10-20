@@ -1,0 +1,6 @@
+{
+  "id": "a",
+  "summary": "System x runs after ghost.y, which names nothing.",
+  "systems": [{ "name": "x", "loop": "fixed", "after": ["ghost.y"] }],
+  "hosts": { "node": "ts/index.ts" }
+}

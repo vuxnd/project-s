@@ -1,0 +1,6 @@
+{
+  "$comment": "The game selects ghost, which is not a module of the root.",
+  "errors": ["unknown-module"],
+  "warnings": [],
+  "generated": false
+}

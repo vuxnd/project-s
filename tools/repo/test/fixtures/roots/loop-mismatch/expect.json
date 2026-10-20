@@ -1,0 +1,6 @@
+{
+  "$comment": "The frame system a.draw runs after the fixed system a.step.",
+  "errors": ["loop-mismatch"],
+  "warnings": [],
+  "generated": false
+}

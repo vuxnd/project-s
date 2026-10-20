@@ -1,0 +1,6 @@
+{
+  "id": "a",
+  "summary": "Requires b.",
+  "requires": ["b"],
+  "hosts": { "node": "ts/index.ts" }
+}

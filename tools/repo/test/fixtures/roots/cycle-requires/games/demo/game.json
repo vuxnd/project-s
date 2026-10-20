@@ -1,0 +1,7 @@
+{
+  "id": "demo",
+  "summary": "Selects a, which requires b, which requires a.",
+  "hosts": ["node"],
+  "fixedHz": 60,
+  "modules": { "a": {} }
+}

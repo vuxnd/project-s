@@ -1,0 +1,8 @@
+{
+  "$schema": "../../../../../../../../schemas/module.schema.json",
+  "id": "view",
+  "summary": "Requires api; the frame system draw runs after feature.",
+  "requires": ["api"],
+  "systems": [{ "name": "draw", "loop": "frame", "after": ["feature"] }],
+  "hosts": { "node": "ts/index.ts", "web": "ts/index.ts" }
+}

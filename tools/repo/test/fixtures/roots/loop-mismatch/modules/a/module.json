@@ -1,0 +1,9 @@
+{
+  "id": "a",
+  "summary": "A frame system that runs after a fixed system.",
+  "systems": [
+    { "name": "step", "loop": "fixed" },
+    { "name": "draw", "loop": "frame", "after": ["a.step"] }
+  ],
+  "hosts": { "node": "ts/index.ts" }
+}

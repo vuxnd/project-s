@@ -1,0 +1,8 @@
+{
+  "$schema": "../../../../../../../../schemas/module.schema.json",
+  "id": "impl",
+  "summary": "Implements api with the fixed system step.",
+  "implements": ["api"],
+  "systems": [{ "name": "step", "loop": "fixed" }],
+  "hosts": { "node": "ts/index.ts", "web": "ts/index.ts" }
+}

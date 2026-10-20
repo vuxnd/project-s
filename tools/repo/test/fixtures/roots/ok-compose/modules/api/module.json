@@ -1,0 +1,6 @@
+{
+  "$schema": "../../../../../../../../schemas/module.schema.json",
+  "id": "api",
+  "summary": "A contract that impl implements and feature and view require.",
+  "contract": true
+}

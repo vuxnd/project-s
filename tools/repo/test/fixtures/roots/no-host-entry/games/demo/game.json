@@ -1,0 +1,7 @@
+{
+  "id": "demo",
+  "summary": "Builds for node a module that only has code for web.",
+  "hosts": ["node"],
+  "fixedHz": 60,
+  "modules": { "web_only": {} }
+}

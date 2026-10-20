@@ -1,0 +1,5 @@
+{
+  "id": "a",
+  "summary": "A plain code module.",
+  "hosts": { "node": "ts/index.ts" }
+}

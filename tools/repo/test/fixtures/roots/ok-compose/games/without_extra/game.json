@@ -1,0 +1,8 @@
+{
+  "$schema": "../../../../../../../../schemas/game.schema.json",
+  "id": "without_extra",
+  "summary": "Selects impl, feature and view on node, without extra.",
+  "hosts": ["node"],
+  "fixedHz": 60,
+  "modules": { "impl": {}, "feature": {}, "view": {} }
+}

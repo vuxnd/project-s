@@ -1,0 +1,7 @@
+{
+  "id": "demo",
+  "summary": "Selects a and b, whose systems wait for each other.",
+  "hosts": ["node"],
+  "fixedHz": 60,
+  "modules": { "a": {}, "b": {} }
+}

@@ -1,0 +1,7 @@
+{
+  "$schema": "../../../../../../../../schemas/module.schema.json",
+  "id": "extra",
+  "summary": "An optional module of feature, with the fixed system tick_extra.",
+  "systems": [{ "name": "tick_extra", "loop": "fixed" }],
+  "hosts": { "node": "ts/index.ts", "web": "ts/index.ts" }
+}

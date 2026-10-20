@@ -1,0 +1,7 @@
+{
+  "id": "demo",
+  "summary": "Sets the speed of a to a string.",
+  "hosts": ["node"],
+  "fixedHz": 60,
+  "modules": { "a": { "config": { "speed": "fast" } } }
+}

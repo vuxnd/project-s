@@ -1,0 +1,6 @@
+{
+  "id": "a",
+  "summary": "Declares a config with an integer speed.",
+  "config": { "schema": "schemas/config.schema.json", "defaults": { "speed": 1 } },
+  "hosts": { "node": "ts/index.ts" }
+}
