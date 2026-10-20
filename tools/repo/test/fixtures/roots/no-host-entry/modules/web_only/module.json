@@ -1,0 +1,5 @@
+{
+  "id": "web_only",
+  "summary": "Has code for host web only.",
+  "hosts": { "web": "web/index.ts" }
+}

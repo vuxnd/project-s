@@ -1,0 +1,6 @@
+{
+  "id": "user",
+  "summary": "Requires api.",
+  "requires": ["api"],
+  "hosts": { "node": "ts/index.ts" }
+}

@@ -1,0 +1,6 @@
+{
+  "$comment": "The game selects user, which requires api, and no module that implements api.",
+  "errors": ["no-provider"],
+  "warnings": [],
+  "generated": false
+}

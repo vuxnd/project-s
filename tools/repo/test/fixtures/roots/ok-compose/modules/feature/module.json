@@ -1,0 +1,9 @@
+{
+  "$schema": "../../../../../../../../schemas/module.schema.json",
+  "id": "feature",
+  "summary": "Requires api and may use extra; the fixed system act runs after api.",
+  "requires": ["api"],
+  "optional": ["extra"],
+  "systems": [{ "name": "act", "loop": "fixed", "after": ["api"] }],
+  "hosts": { "node": "ts/index.ts", "web": "ts/index.ts" }
+}

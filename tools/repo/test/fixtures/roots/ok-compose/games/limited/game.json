@@ -1,0 +1,8 @@
+{
+  "$schema": "../../../../../../../../schemas/game.schema.json",
+  "id": "limited",
+  "summary": "Selects impl and feature on node and web, and view on web only.",
+  "hosts": ["node", "web"],
+  "fixedHz": 60,
+  "modules": { "impl": {}, "feature": {}, "view": { "hosts": ["web"] } }
+}

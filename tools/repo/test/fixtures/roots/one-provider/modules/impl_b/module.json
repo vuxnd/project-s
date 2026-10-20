@@ -1,0 +1,6 @@
+{
+  "id": "impl_b",
+  "summary": "Implements api too.",
+  "implements": ["api"],
+  "hosts": { "node": "ts/index.ts" }
+}

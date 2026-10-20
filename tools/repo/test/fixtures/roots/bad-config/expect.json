@@ -1,0 +1,6 @@
+{
+  "$comment": "The game sets the integer config speed of a to the string fast.",
+  "errors": ["bad-config"],
+  "warnings": [],
+  "generated": false
+}

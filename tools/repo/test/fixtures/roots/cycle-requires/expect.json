@@ -1,0 +1,6 @@
+{
+  "$comment": "a requires b and b requires a.",
+  "errors": ["cycle"],
+  "warnings": [],
+  "generated": false
+}

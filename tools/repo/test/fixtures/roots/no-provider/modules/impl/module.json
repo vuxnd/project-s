@@ -1,0 +1,6 @@
+{
+  "id": "impl",
+  "summary": "Implements api; the game does not select it.",
+  "implements": ["api"],
+  "hosts": { "node": "ts/index.ts" }
+}

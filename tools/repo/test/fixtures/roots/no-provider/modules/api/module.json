@@ -1,0 +1,5 @@
+{
+  "id": "api",
+  "summary": "A contract that the game gives no implementation.",
+  "contract": true
+}

@@ -1,0 +1,6 @@
+{
+  "$comment": "a.x runs after ghost.y, and no module ghost exists.",
+  "errors": ["unknown-ref"],
+  "warnings": [],
+  "generated": false
+}

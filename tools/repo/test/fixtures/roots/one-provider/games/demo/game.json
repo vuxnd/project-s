@@ -1,0 +1,7 @@
+{
+  "id": "demo",
+  "summary": "Selects both implementations of api.",
+  "hosts": ["node"],
+  "fixedHz": 60,
+  "modules": { "impl_a": {}, "impl_b": {} }
+}

@@ -1,0 +1,7 @@
+{
+  "id": "demo",
+  "summary": "Selects user, which requires api, and no implementation of api.",
+  "hosts": ["node"],
+  "fixedHz": 60,
+  "modules": { "user": {} }
+}
