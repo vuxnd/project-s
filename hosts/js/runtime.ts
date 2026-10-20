@@ -258,7 +258,8 @@ export async function load(bundle: Bundle, options: LoadOptions = {}): Promise<G
   for (const [id, providerId] of Object.entries(bundle.operations)) {
     const provider = loaded.get(providerId);
     if (provider === undefined) continue;
-    const fn = provider.entry.operations?.[nameOf(id)];
+    const ops = provider.entry.operations ?? {};
+    const fn = Object.hasOwn(ops, nameOf(id)) ? ops[nameOf(id)] : undefined;
     if (typeof fn !== 'function') throw new Error(`missing operation: ${id}`);
     operations.set(id, { provider, fn });
   }

@@ -1,6 +1,10 @@
 // Tests for hosts/js/runtime.ts: rules R1 to R22 of plan.md 4.9.2, with inline bundles and inline module entries.
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { test } from 'node:test';
+import { pathToFileURL } from 'node:url';
 import v8 from 'node:v8';
 import vm from 'node:vm';
 import { FORMATS, load } from '../runtime.ts';
@@ -71,9 +75,18 @@ test('R1 load rejects a bundle format the host does not read', async () => {
 
 test('R2 load imports every entry in bundle order', async () => {
   const asked: string[] = [];
-  const bundle = bundleOf({ modules: [moduleOf('b'), moduleOf('a')], config: { a: {}, b: {} } });
-  await load(bundle, { importer: importerOf({ a: {}, b: {} }, asked) });
-  assert.deepEqual(asked, ['b', 'a']);
+  const bundle = bundleOf({ modules: [moduleOf('b', { entry: 'mods/b/ts/index.ts' }), moduleOf('a', { entry: 'mods/a/ts/index.ts' })], config: { a: {}, b: {} } });
+  await load(bundle, { importer: importerOf({ 'mods/a/ts/index.ts': {}, 'mods/b/ts/index.ts': {} }, asked) });
+  assert.deepEqual(asked, ['mods/b/ts/index.ts', 'mods/a/ts/index.ts']);
+});
+
+test('R2 without an importer, load imports root + entry', async (t) => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-'));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  fs.mkdirSync(path.join(dir, 'm', 'ts'), { recursive: true });
+  fs.writeFileSync(path.join(dir, 'm', 'ts', 'index.ts'), 'export function init(): { from: string } { return { from: \'file\' }; }\n');
+  const game = await load(bundleOf({ modules: [moduleOf('m', { entry: 'm/ts/index.ts' })] }), { root: pathToFileURL(dir + path.sep).href });
+  assert.deepEqual(game.snapshot(), { m: { from: 'file' } });
 });
 
 test('R2 a scheduled system its owner does not export is missing', async () => {
@@ -86,6 +99,7 @@ test('R2 an operation its loaded provider does not export is missing', async () 
   await assert.rejects(loadOne({}, { operations: { 'm.op': 'm' } }), { message: 'missing operation: m.op' });
   await assert.rejects(loadOne({ operations: {} }, { operations: { 'm.op': 'm' } }), { message: 'missing operation: m.op' });
   await loadOne({}, { operations: { 'ghost.op': 'ghost' } }); // a provider that is not a loaded module is not checked
+  await assert.rejects(loadOne({ operations: {} }, { operations: { 'm.constructor': 'm' } }), { message: 'missing operation: m.constructor' });
 });
 
 test('R3 init runs after all imports in module order and its awaited result becomes the state', async () => {
@@ -168,6 +182,20 @@ test('R5 inputs follow the emitted events and reach only the tick they were give
   game.tick([ev('input 1')]);
   game.tick();
   assert.deepEqual(seen, [['input 0'], ['emitted', 'input 1'], []]);
+});
+
+test('R5 events(id) returns only the payloads of event id', async () => {
+  const seen: unknown[] = [];
+  const entry: ModuleEntry = {
+    run(ctx: Ctx) {
+      seen.push(ctx.events('m.e'), ctx.events('m.f'));
+      if (ctx.tick === 0) { ctx.emit('m.e', 'e1'); ctx.emit('m.f', 'f1'); ctx.emit('m.e', 'e2'); }
+    },
+  };
+  const game = await loadOne(entry, { ...schedule(['m.run']), events: { 'm.e': 'm', 'm.f': 'm' } });
+  game.tick();
+  game.tick([{ event: 'm.f', payload: 'f2' }]);
+  assert.deepEqual(seen, [[], [], ['e1', 'e2'], ['f1', 'f2']]);
 });
 
 test('R5 ctx.events returns an empty list outside a run', async () => {
@@ -318,6 +346,20 @@ test('R9 debug mode rejects an operation a frame system calls that changes its p
   assert.throws(() => bumping.frame(0.01, 0), { message: 'frame call changed state: store.bump' });
   const unchecked = await gameCalling('store.bump', {});
   unchecked.frame(0.01, 0);
+});
+
+test('R9 debug mode also checks an operation called by an operation that a frame system calls', async () => {
+  const bundle = bundleOf({
+    modules: [moduleOf('store'), moduleOf('relay', { sees: ['relay', 'store'] }), moduleOf('view', { sees: ['view', 'relay'] })],
+    operations: { 'store.bump': 'store', 'relay.pass': 'relay' },
+    config: { store: {}, relay: {}, view: {} },
+    ...schedule([], ['view.look']),
+  });
+  const store: ModuleEntry = { init: () => ({ n: 0 }), operations: { bump: (ctx: Ctx) => { (ctx.state as { n: number }).n += 1; } } };
+  const relay: ModuleEntry = { operations: { pass: (ctx: Ctx) => ctx.call('store.bump') } };
+  const view: ModuleEntry = { look: (ctx: Ctx) => ctx.call('relay.pass') };
+  const game = await load(bundle, { debug: true, importer: importerOf({ store, relay, view }) });
+  assert.throws(() => game.frame(0.01, 0), { message: 'frame call changed state: store.bump' });
 });
 
 test('R10 an id whose owner is neither seen nor absent is not visible', async () => {
@@ -528,6 +570,17 @@ test('R18 validate checks state, events, params and results against bundle.schem
   (await loadOne(entry, patch, { validate: spy })).tick();
   (await loadOne(entry, { ...patch, schemas: undefined }, { debug: true, validate: spy })).tick();
   assert.deepEqual(calls, []);
+});
+
+test('R18 validate also checks inputs, and params or a result that is missing', async () => {
+  const schemas = { state: {}, events: { 'm.e': 'event.json' }, params: { 'm.op': 'params.json' }, results: { 'm.op': 'result.json' } };
+  const calls: [string, unknown][] = [];
+  const validate = (schema: string, value: unknown): string | null => { calls.push([schema, value]); return value === undefined ? 'missing' : null; };
+  const game = await loadOne({ operations: { op: () => undefined } }, { operations: { 'm.op': 'm' }, schemas }, { debug: true, validate });
+  game.tick([ev({ a: 1 })]);
+  assert.deepEqual(calls, [['event.json', { a: 1 }]]);
+  assert.throws(() => game.call('m.op'), { message: 'invalid params for m.op: missing' });
+  assert.throws(() => game.call('m.op', { p: 1 }), { message: 'invalid result for m.op: missing' });
 });
 
 test('R19 game.call runs an operation without visibility checks and rejects an undeclared id', async () => {
