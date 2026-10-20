@@ -34,7 +34,7 @@ node hosts/python/run.ts hosts/python/play.py build/examples/games/sandbox/pytho
 Differences from the JavaScript host:
 
 - `load` is synchronous and errors are `BundleError`, with the same message text.
-- `ctx.config_of(id)` is `ctx.configOf(id)`.
+- `ctx.config_of(id)` replaces `ctx.configOf(id)`.
 - Records and config are plain dicts and lists, not frozen.
 - The state comparison of R9 is `json.dumps(state, sort_keys=False)` text.
 - The JSON-clean copy of R18 is `json.loads(json.dumps(value, allow_nan=False))` with `-0.0` turned into `0.0`. A value that `json.dumps` rejects, or whose copy is not equal to it (a tuple, a set, a non-string key), raises `BundleError('<kind> not JSON: <id>')`.
