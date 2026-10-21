@@ -59,7 +59,7 @@ build/                     bundles and trace bundles written by the tool (ignore
 
 ## Where to start
 
-- ARCHITECTURE.md: the design, the contracts C1 to C10 and how to extend the repository.
+- ARCHITECTURE.md: the design and the contracts C1 to C10.
 - `examples/games/sandbox/game.json` and the modules it lists in `examples/modules/`: a complete small game.
 - `hosts/conformance/modules/probe/`: what every runtime must do, written as traces.
 - `tools/repo/lib/rules.ts`: every problem the tool reports, with its meaning.

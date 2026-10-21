@@ -1,4 +1,4 @@
-// Walkthroughs of ARCHITECTURE.md as tests: each applies a change to a temporary copy of schemas/ and the frozen sandbox root and checks the result (plan.md 4.18).
+// Extension walkthroughs as tests: each applies a change to a temporary copy of schemas/ and the frozen sandbox root and checks the result (plan.md 4.18).
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';

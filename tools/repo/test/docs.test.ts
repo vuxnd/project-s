@@ -11,8 +11,9 @@ import { toPosix } from '../lib/fsx.ts';
 
 const script = path.resolve(import.meta.dirname, '..', 'docs.ts');
 const HEADINGS = [
-  'Repository structure', 'Principles', 'Major systems', 'Module boundaries', 'Data flows', 'Extension mechanisms',
-  'Technology integration', 'Backward compatibility', 'Dependency management', 'Testing', 'Deferred', 'Decisions',
+  '1. Project Structure', '2. High-Level System Diagram', '3. Core Components', '4. Data Stores', '5. External Integrations / APIs',
+  '6. Deployment & Infrastructure', '7. Security Considerations', '8. Development & Testing Environment',
+  '9. Future Considerations / Roadmap', '10. Project Identification', '11. Glossary / Acronyms',
 ];
 
 // Writes lines to <temporary dir>/<name> and runs the script on that file.
@@ -80,16 +81,16 @@ test('extractCommands returns the lines of sh blocks and marks npm ci, npm test 
 test('missingHeadings names each required heading that no ## heading starts with, ignoring case', () => {
   assert.deepEqual(missingHeadings(HEADINGS.map((name) => `## ${name.toUpperCase()}, and more`).join('\n')), []);
   const md = [
-    '# Principles',
-    '### Testing',
-    '## The principles',
+    '# 2. High-Level System Diagram',
+    '### 8. Development & Testing Environment',
+    '## The high-level system diagram',
     '```text',
-    '## Deferred',
+    '## 9. Future Considerations / Roadmap',
     '```',
-    '## repository STRUCTURE',
-    '## Decisions, one line each',
+    '## 1. project STRUCTURE',
+    '## 11. glossary / acronyms, one line each',
   ].join('\n');
-  assert.deepEqual(missingHeadings(md), HEADINGS.filter((name) => name !== 'Repository structure' && name !== 'Decisions'));
+  assert.deepEqual(missingHeadings(md), HEADINGS.filter((name) => name !== '1. Project Structure' && name !== '11. Glossary / Acronyms'));
 });
 
 test('missingContracts reports a contract label that a schema description cites and the document lacks', () => {
@@ -105,7 +106,7 @@ test('missingContracts reports a contract label that a schema description cites 
 
 test('the script prints each failure and the summary, and exits 1 when any check fails', (t) => {
   const r = runDocs(t, 'ARCHITECTURE.md', [
-    '## Principles',
+    '## 2. High-Level System Diagram',
     'Exists: `tools/repo/docs.ts`; missing: `tools/repo/nothing.ts`.',
     '```sh',
     'node -e "process.exit(3)"',
@@ -117,8 +118,8 @@ test('the script prints each failure and the summary, and exits 1 when any check
   assert.deepEqual(r.stdout.split(/\r?\n/).filter((line) => line !== ''), [
     `${r.file}:2: missing path tools/repo/nothing.ts`,
     `${r.file}:4: command failed (exit 3): node -e "process.exit(3)"`,
-    ...HEADINGS.filter((name) => name !== 'Principles').map((name) => `${r.file}: missing heading ${name}`),
-    'docs: 2 paths, 2 commands checked, 13 failures',
+    ...HEADINGS.filter((name) => name !== '2. High-Level System Diagram').map((name) => `${r.file}: missing heading ${name}`),
+    'docs: 2 paths, 2 commands checked, 12 failures',
   ]);
 });
 
@@ -162,14 +163,14 @@ test('the script works from the repository root, validates the commands it does 
   const r = spawnSync(process.execPath, [path.join(repo, 'tools', 'repo', 'docs.ts'), md], { cwd: os.tmpdir(), encoding: 'utf8' });
   const file = toPosix(md);
   assert.equal(r.status, 1, r.stderr);
-  // Plan 4.15 fixes no text for a command that is not valid, so lines 15 to 17 keep only their location.
-  const out = r.stdout.split(/\r?\n/).filter((line) => line !== '').map((line) => line.trim().replace(/^(.*:1[5-7]): .*$/, '$1'));
+  // Plan 4.15 fixes no text for a command that is not valid, so lines 14 to 16 keep only their location.
+  const out = r.stdout.split(/\r?\n/).filter((line) => line !== '').map((line) => line.trim().replace(/^(.*:1[4-6]): .*$/, '$1'));
   assert.deepEqual(out, [
-    `${file}:13: missing path sub/marker.txt/`,
+    `${file}:12: missing path sub/marker.txt/`,
+    `${file}:14`,
     `${file}:15`,
     `${file}:16`,
-    `${file}:17`,
-    `${file}:19: command failed (exit 1): node sub/fail.cjs`,
+    `${file}:18: command failed (exit 1): node sub/fail.cjs`,
     ...Array.from({ length: 20 }, (_, i) => `line ${i + 6}`),
     `${file}: contract C3 cited by schemas/a.schema.json is not described`,
     'docs: 2 paths, 5 commands checked, 6 failures',

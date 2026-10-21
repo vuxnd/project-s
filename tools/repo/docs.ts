@@ -8,8 +8,9 @@ export interface Span { line: number; text: string }
 export interface Command { line: number; text: string; run: boolean }
 
 const HEADINGS = [
-  'Repository structure', 'Principles', 'Major systems', 'Module boundaries', 'Data flows', 'Extension mechanisms',
-  'Technology integration', 'Backward compatibility', 'Dependency management', 'Testing', 'Deferred', 'Decisions',
+  '1. Project Structure', '2. High-Level System Diagram', '3. Core Components', '4. Data Stores', '5. External Integrations / APIs',
+  '6. Deployment & Infrastructure', '7. Security Considerations', '8. Development & Testing Environment',
+  '9. Future Considerations / Roadmap', '10. Project Identification', '11. Glossary / Acronyms',
 ];
 // Validated but not run: installing, the whole test suite (which runs this check) and a server that does not exit.
 const NOT_RUN = ['npm ci', 'npm test', 'npm run serve'];
