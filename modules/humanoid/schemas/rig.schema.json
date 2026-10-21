@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Rig",
+  "description": "Rigid parts joined in a tree; clips rotate each part about its pivot. Cell grid: integers are cell centres, +Y up, +Z forward, +X the character's left, 1 cell = 1/16 m.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$version", "parts"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "$version": { "const": 1 },
+    "$comment": { "type": "string" },
+    "parts": {
+      "description": "Parts by name, parents before children; side names end in _l or _r.",
+      "type": "object",
+      "propertyNames": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,63}$" },
+      "additionalProperties": { "$ref": "#/$defs/part" }
+    }
+  },
+  "$defs": {
+    "part": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["parent", "pivot"],
+      "properties": {
+        "parent": { "description": "The part this one hangs from; null for the one root.", "type": ["string", "null"] },
+        "pivot": {
+          "description": "The joint the part rotates about; .5 lies on a cell face.",
+          "type": "array",
+          "items": { "type": "number", "multipleOf": 0.5 },
+          "minItems": 3,
+          "maxItems": 3,
+          "x-unit": "cell"
+        }
+      }
+    }
+  }
+}

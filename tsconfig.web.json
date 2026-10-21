@@ -5,6 +5,8 @@
     "hosts/js/web/host.ts",
     "modules/*/web/**/*.ts",
     "examples/modules/*/web/**/*.ts",
-    "hosts/conformance/modules/*/web/**/*.ts"
+    "hosts/conformance/modules/*/web/**/*.ts",
+    "tools/voxel/raster.ts",
+    "tools/voxel/web/view.ts"
   ]
 }

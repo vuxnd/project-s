@@ -7,6 +7,7 @@ Project S is an engine-neutral game foundation. Games are module folders and JSO
 ```text
 schemas/              contract schemas (C1, C2, C4, C6)
 tools/repo/           the tool: cli.ts, commands/, lib/
+tools/voxel/          the voxel preview renderer: PNGs from Node, a turnable browser viewer under web/, without dependencies
 hosts/js/             runtime.ts (C5), trace runner; web/ is the browser host
 hosts/python/         runtime.py, trace runner, bundle player
 hosts/conformance/    root: the probe contract; its traces test C5

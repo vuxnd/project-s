@@ -42,12 +42,17 @@ npm run serve
 
 Then open `http://127.0.0.1:8080/hosts/js/web/index.html?root=examples&game=sandbox`. Two crates and a plank fall and stack, and a click on the canvas drops another crate. Each first contact plays a tone, but the browser keeps sound off until the first click or key press, so the tones of the first landings sound together then.
 
+## View a model
+
+With `npm run serve` running, open `http://127.0.0.1:8080/tools/voxel/web/index.html` and drag to turn the humanoid base model. Add `?model=<path from the repository root>` to show another model record.
+
 ## Tree
 
 ```text
 .github/workflows/ci.yml   CI: npm ci, then npm test
 schemas/                   JSON Schemas of manifests, games, bundles and traces
 tools/repo/                the repository tool (cli.ts, commands/, lib/), its tests and fixture roots, docs.ts
+tools/voxel/               the voxel preview renderer: PNGs from Node, a turnable browser viewer under web/, without dependencies
 hosts/js/                  JavaScript runtime and Node trace runner; web/ holds the browser host
 hosts/python/              Python runtime, trace runner and bundle player
 hosts/conformance/         the probe contract, whose traces test the runtime rules on node and python

@@ -1,0 +1,19 @@
+{
+  "$schema": "../../schemas/rig.schema.json",
+  "$version": 1,
+  "parts": {
+    "hips": { "parent": null, "pivot": [0, 10.5, 1.5] },
+    "spine": { "parent": "hips", "pivot": [0, 12.5, 1.5] },
+    "head": { "parent": "spine", "pivot": [0, 18.5, 1.5] },
+    "upper_arm_l": { "parent": "spine", "pivot": [4.5, 16.5, 1.5] },
+    "forearm_l": { "parent": "upper_arm_l", "pivot": [4.5, 11.5, 1.5] },
+    "upper_arm_r": { "parent": "spine", "pivot": [-4.5, 16.5, 1.5] },
+    "forearm_r": { "parent": "upper_arm_r", "pivot": [-4.5, 11.5, 1.5] },
+    "thigh_l": { "parent": "hips", "pivot": [1.5, 8.5, 1.5] },
+    "shin_l": { "parent": "thigh_l", "pivot": [1.5, 4.5, 1.5] },
+    "foot_l": { "parent": "shin_l", "pivot": [1.5, 0.5, 1.5] },
+    "thigh_r": { "parent": "hips", "pivot": [-1.5, 8.5, 1.5] },
+    "shin_r": { "parent": "thigh_r", "pivot": [-1.5, 4.5, 1.5] },
+    "foot_r": { "parent": "shin_r", "pivot": [-1.5, 0.5, 1.5] }
+  }
+}

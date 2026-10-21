@@ -1,0 +1,55 @@
+{
+  "$schema": "../../schemas/model.schema.json",
+  "$version": 1,
+  "$comment": "Voxel dummy, 26 cells tall, 12 source boxes split at the joints. Palette: #f0d0b6 skin, #2c2430 eyes.",
+  "rig": "humanoid/base",
+  "parts": {
+    "hips": [
+      { "from": [-2, 9, 0], "to": [2, 12, 3], "color": "#f0d0b6" }
+    ],
+    "spine": [
+      { "from": [-3, 13, 0], "to": [3, 17, 3], "color": "#f0d0b6" },
+      { "from": [-1, 18, 1], "to": [1, 18, 2], "color": "#f0d0b6" }
+    ],
+    "head": [
+      { "from": [-2, 19, -1], "to": [2, 25, 3], "color": "#f0d0b6" },
+      { "from": [-2, 19, 4], "to": [2, 21, 4], "color": "#f0d0b6" },
+      { "from": [-2, 24, 4], "to": [2, 25, 4], "color": "#f0d0b6" },
+      { "from": [-2, 22, 4], "to": [-2, 23, 4], "color": "#f0d0b6" },
+      { "from": [0, 22, 4], "to": [0, 23, 4], "color": "#f0d0b6" },
+      { "from": [2, 22, 4], "to": [2, 23, 4], "color": "#f0d0b6" },
+      { "from": [-1, 22, 4], "to": [-1, 23, 4], "color": "#2c2430" },
+      { "from": [1, 22, 4], "to": [1, 23, 4], "color": "#2c2430" }
+    ],
+    "upper_arm_l": [
+      { "from": [4, 12, 1], "to": [5, 17, 2], "color": "#f0d0b6" }
+    ],
+    "forearm_l": [
+      { "from": [4, 7, 1], "to": [5, 11, 2], "color": "#f0d0b6" }
+    ],
+    "upper_arm_r": [
+      { "from": [-5, 12, 1], "to": [-4, 17, 2], "color": "#f0d0b6" }
+    ],
+    "forearm_r": [
+      { "from": [-5, 7, 1], "to": [-4, 11, 2], "color": "#f0d0b6" }
+    ],
+    "thigh_l": [
+      { "from": [1, 5, 1], "to": [2, 8, 2], "color": "#f0d0b6" }
+    ],
+    "shin_l": [
+      { "from": [1, 1, 1], "to": [2, 4, 2], "color": "#f0d0b6" }
+    ],
+    "foot_l": [
+      { "from": [1, 0, 1], "to": [2, 0, 3], "color": "#f0d0b6" }
+    ],
+    "thigh_r": [
+      { "from": [-2, 5, 1], "to": [-1, 8, 2], "color": "#f0d0b6" }
+    ],
+    "shin_r": [
+      { "from": [-2, 1, 1], "to": [-1, 4, 2], "color": "#f0d0b6" }
+    ],
+    "foot_r": [
+      { "from": [-2, 0, 1], "to": [-1, 0, 3], "color": "#f0d0b6" }
+    ]
+  }
+}
