@@ -1,6 +1,6 @@
 {
   "$schema": "../../schemas/module.schema.json",
   "id": "humanoid",
-  "summary": "The humanoid rig every human-like character shares, and the base voxel body built on it.",
-  "types": { "rig": "schemas/rig.schema.json", "model": "schemas/model.schema.json" }
+  "summary": "The humanoid rig every human-like character shares, the base voxel body built on it, and clips that move it.",
+  "types": { "rig": "schemas/rig.schema.json", "model": "schemas/model.schema.json", "clip": "schemas/clip.schema.json" }
 }

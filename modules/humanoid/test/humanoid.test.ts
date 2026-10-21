@@ -1,8 +1,8 @@
-// Unit tests for every humanoid rig and model record: a tree of parts, boxes that do not overlap, left-right symmetry, height, pivots in their own boxes.
+// Unit tests for every humanoid rig, model and clip record: a tree of parts, boxes that do not overlap, left-right symmetry, height, pivots in their own boxes, clips that name real parts, rise in time and loop.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { test } from 'node:test';
-import type { Model, Rig } from '../types.gen.ts';
+import type { Clip, Model, Rig } from '../types.gen.ts';
 
 type Box = Model['parts'][string][number];
 
@@ -17,6 +17,11 @@ const models = readAll<Model>('humanoid.model').map(([file, model]) => {
   const rig = rigs.find(([rigFile]) => rigFile === `humanoid.rig/${model.rig.replace(/^humanoid\//, '')}.json`);
   assert.ok(rig, `${file}: rig ${model.rig} has no file`);
   return { file, model, rig: rig[1], boxes: Object.entries(model.parts).flatMap(([part, list]) => list.map((box) => ({ part, box }))) };
+});
+const clips = readAll<Clip>('humanoid.clip').map(([file, clip]) => {
+  const rig = rigs.find(([rigFile]) => rigFile === `humanoid.rig/${clip.rig.replace(/^humanoid\//, '')}.json`);
+  assert.ok(rig, `${file}: rig ${clip.rig} has no file`);
+  return { file, clip, rig: rig[1] };
 });
 
 // The other side's name of a part: _l and _r swap, centre parts keep theirs.
@@ -95,5 +100,29 @@ test('each pivot lies inside or on the surface of its own boxes', () => {
       assert.ok(near, `${file}: no boxes for part ${name}`);
       assert.ok(near.some((box) => touches(box, pivot)), `${file}: ${name}: pivot ${JSON.stringify(pivot)}`);
     }
+  }
+});
+
+test('each clip moves only parts of the rig it names', () => {
+  for (const { file, clip, rig } of clips) {
+    for (const part of Object.keys(clip.parts)) assert.ok(part in rig.parts, `${file}: ${part} is not a part of ${clip.rig}`);
+  }
+});
+
+test('each track\'s key times rise strictly and lie within 0 to the duration', () => {
+  for (const { file, clip } of clips) {
+    for (const [part, keys] of Object.entries(clip.parts)) {
+      for (const [i, key] of keys.entries()) {
+        assert.ok(key.time >= 0 && key.time <= clip.duration, `${file}: ${part}: key ${i} at ${key.time}`);
+        if (i > 0) assert.ok(key.time > keys[i - 1].time, `${file}: ${part}: key ${i} at ${key.time} does not follow ${keys[i - 1].time}`);
+      }
+    }
+  }
+});
+
+// Assumes every clip loops; narrow this when the first one-shot clip arrives.
+test('each track\'s first and last keys hold the same rotation, so every clip loops', () => {
+  for (const { file, clip } of clips) {
+    for (const [part, keys] of Object.entries(clip.parts)) assert.deepEqual(keys[keys.length - 1].rotation, keys[0].rotation, `${file}: ${part}`);
   }
 });

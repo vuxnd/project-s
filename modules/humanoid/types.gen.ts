@@ -27,6 +27,21 @@ export type Model = {
   };
 };
 
+/** Rotations of rig parts over time. Each part turns about its pivot by its x, then y, then z angle, about the axes of its parent, and carries its children with it; a part without keys keeps its rest pose. Angles change linearly between keys and hold the first key before it and the last key after it. Axes: +Y up, +Z forward, +X the character's left; a positive angle turns counterclockwise seen from the positive end of its axis. */
+export type Clip = {
+  rig: string;
+  /** The clip runs from 0 to duration; a looping player starts again at 0. */
+  duration: number;
+  /** Keys by rig part name, in time order. */
+  parts: {
+    [key: string]: {
+      time: number;
+      /** Degrees about x, y and z; a positive x angle swings a hanging limb backward. */
+      rotation: [number, number, number];
+    }[];
+  };
+};
+
 export type Config = Record<string, never>;
 
 export type State = undefined;
