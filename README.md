@@ -44,7 +44,7 @@ Then open `http://127.0.0.1:8080/hosts/js/web/index.html?root=examples&game=sand
 
 ## View a model
 
-With `npm run serve` running, open `http://127.0.0.1:8080/tools/voxel/web/index.html` and drag to turn the humanoid base model. Add `?model=<path from the repository root>` to show another model record.
+With `npm run serve` running, open `http://127.0.0.1:8080/tools/voxel/web/index.html` and drag to turn the humanoid base model. Add `?model=<path from the repository root>` to show another model record. Add `clip=<path from the repository root>` to the query to play a clip of the model's rig on a loop, such as `modules/humanoid/content/humanoid.clip/walk.json`.
 
 ## Tree
 
