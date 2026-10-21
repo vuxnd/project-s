@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Log",
+  "description": "One entry per step probe_impl ran, in the order it ran them.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["tick", "in", "do"],
+    "properties": {
+      "tick": { "type": "integer" },
+      "in": { "type": "string" },
+      "do": { "type": "string" },
+      "id": { "type": "string" },
+      "result": { "description": "What the action returned, as JSON; null for none." },
+      "error": { "description": "The message of the error the action threw.", "type": "string" }
+    }
+  }
+}

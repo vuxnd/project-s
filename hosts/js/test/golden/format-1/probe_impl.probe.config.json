@@ -1,0 +1,117 @@
+{
+  "trace": "hosts/conformance/modules/probe/conformance/config.json",
+  "contract": "probe",
+  "implementation": "probe_impl",
+  "ticks": 1,
+  "bundle": {
+    "format": 1,
+    "game": "probe.config",
+    "host": "node",
+    "fixedHz": 50,
+    "modules": [
+      {
+        "id": "probe_impl",
+        "entry": "hosts/conformance/modules/probe_impl/ts/index.ts",
+        "sees": ["probe", "probe_impl"],
+        "absent": ["probe_peer"],
+        "packages": []
+      }
+    ],
+    "contracts": {
+      "probe": "probe_impl"
+    },
+    "operations": {
+      "probe.log": "probe_impl"
+    },
+    "events": {
+      "probe.ping": "probe"
+    },
+    "types": {
+      "probe.step": 1
+    },
+    "config": {
+      "probe": {
+        "label": "traced"
+      },
+      "probe_impl": {
+        "mode": "strict",
+        "depth": 1
+      }
+    },
+    "records": {
+      "probe.step": {
+        "trace/c01": {
+          "tick": 0,
+          "in": "first",
+          "do": "config"
+        },
+        "trace/c02": {
+          "tick": 0,
+          "in": "first",
+          "do": "configOf",
+          "id": "probe"
+        },
+        "trace/c03": {
+          "tick": 0,
+          "in": "first",
+          "do": "configOf",
+          "id": "probe_impl"
+        }
+      }
+    },
+    "assets": [],
+    "schedule": {
+      "fixed": ["probe_impl.first", "probe_impl.second"],
+      "frame": []
+    },
+    "schemas": {
+      "state": {
+        "probe_impl": "hosts/conformance/modules/probe_impl/schemas/state.schema.json"
+      },
+      "events": {
+        "probe.ping": "hosts/conformance/modules/probe/schemas/ping.schema.json"
+      },
+      "params": {},
+      "results": {
+        "probe.log": "hosts/conformance/modules/probe/schemas/log.schema.json"
+      }
+    }
+  },
+  "inputs": [],
+  "expect": [
+    {
+      "at": 1,
+      "call": "probe.log",
+      "equals": [
+        {
+          "tick": 0,
+          "in": "first",
+          "do": "config",
+          "result": {
+            "mode": "strict",
+            "depth": 1
+          }
+        },
+        {
+          "tick": 0,
+          "in": "first",
+          "do": "configOf",
+          "id": "probe",
+          "result": {
+            "label": "traced"
+          }
+        },
+        {
+          "tick": 0,
+          "in": "first",
+          "do": "configOf",
+          "id": "probe_impl",
+          "result": {
+            "mode": "strict",
+            "depth": 1
+          }
+        }
+      ]
+    }
+  ]
+}

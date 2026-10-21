@@ -1,0 +1,171 @@
+{
+  "trace": "hosts/conformance/modules/probe/conformance/operations.json",
+  "contract": "probe",
+  "implementation": "probe_impl",
+  "ticks": 1,
+  "bundle": {
+    "format": 1,
+    "game": "probe.operations",
+    "host": "python",
+    "fixedHz": 50,
+    "modules": [
+      {
+        "id": "probe_peer",
+        "entry": "hosts/conformance/modules/probe_peer/python/probe_peer.py",
+        "sees": ["probe_peer"],
+        "absent": [],
+        "packages": []
+      },
+      {
+        "id": "probe_impl",
+        "entry": "hosts/conformance/modules/probe_impl/python/probe_impl.py",
+        "sees": ["probe", "probe_impl", "probe_peer"],
+        "absent": [],
+        "packages": []
+      }
+    ],
+    "contracts": {
+      "probe": "probe_impl"
+    },
+    "operations": {
+      "probe.log": "probe_impl",
+      "probe_peer.add": "probe_peer"
+    },
+    "events": {
+      "probe.ping": "probe",
+      "probe_peer.note": "probe_peer"
+    },
+    "types": {
+      "probe.step": 1
+    },
+    "config": {
+      "probe": {
+        "label": "probe"
+      },
+      "probe_impl": {
+        "mode": "default",
+        "depth": 1
+      },
+      "probe_peer": {}
+    },
+    "records": {
+      "probe.step": {
+        "trace/o01": {
+          "tick": 0,
+          "in": "first",
+          "do": "call",
+          "id": "probe_peer.add",
+          "payload": {
+            "n": 5
+          }
+        },
+        "trace/o02": {
+          "tick": 0,
+          "in": "first",
+          "do": "call",
+          "id": "probe_peer.add",
+          "payload": {
+            "n": 5
+          }
+        },
+        "trace/o03": {
+          "tick": 0,
+          "in": "second",
+          "do": "call",
+          "id": "probe.log"
+        },
+        "trace/o04": {
+          "tick": 0,
+          "in": "second",
+          "do": "call",
+          "id": "probe_peer.add",
+          "payload": {
+            "n": 0
+          }
+        }
+      }
+    },
+    "assets": [],
+    "schedule": {
+      "fixed": ["probe_impl.first", "probe_peer.peer", "probe_impl.second"],
+      "frame": []
+    },
+    "schemas": {
+      "state": {
+        "probe_impl": "hosts/conformance/modules/probe_impl/schemas/state.schema.json",
+        "probe_peer": "hosts/conformance/modules/probe_peer/schemas/state.schema.json"
+      },
+      "events": {
+        "probe.ping": "hosts/conformance/modules/probe/schemas/ping.schema.json",
+        "probe_peer.note": "hosts/conformance/modules/probe_peer/schemas/note.schema.json"
+      },
+      "params": {
+        "probe_peer.add": "hosts/conformance/modules/probe_peer/schemas/add_params.schema.json"
+      },
+      "results": {
+        "probe.log": "hosts/conformance/modules/probe/schemas/log.schema.json",
+        "probe_peer.add": "hosts/conformance/modules/probe_peer/schemas/add_result.schema.json"
+      }
+    }
+  },
+  "inputs": [],
+  "expect": [
+    {
+      "at": 1,
+      "call": "probe.log",
+      "equals": [
+        {
+          "tick": 0,
+          "in": "first",
+          "do": "call",
+          "id": "probe_peer.add",
+          "result": 5
+        },
+        {
+          "tick": 0,
+          "in": "first",
+          "do": "call",
+          "id": "probe_peer.add",
+          "result": 10
+        },
+        {
+          "tick": 0,
+          "in": "second",
+          "do": "call",
+          "id": "probe.log",
+          "result": [
+            {
+              "tick": 0,
+              "in": "first",
+              "do": "call",
+              "id": "probe_peer.add",
+              "result": 5
+            },
+            {
+              "tick": 0,
+              "in": "first",
+              "do": "call",
+              "id": "probe_peer.add",
+              "result": 10
+            }
+          ]
+        },
+        {
+          "tick": 0,
+          "in": "second",
+          "do": "call",
+          "id": "probe_peer.add",
+          "result": 20
+        }
+      ]
+    },
+    {
+      "at": 1,
+      "call": "probe_peer.add",
+      "params": {
+        "n": 0
+      },
+      "equals": 20
+    }
+  ]
+}

@@ -1,0 +1,213 @@
+{
+  "trace": "hosts/conformance/modules/probe/conformance/visibility.json",
+  "contract": "probe",
+  "implementation": "probe_impl",
+  "ticks": 1,
+  "bundle": {
+    "format": 1,
+    "game": "probe.visibility",
+    "host": "python",
+    "fixedHz": 50,
+    "modules": [
+      {
+        "id": "probe_impl",
+        "entry": "hosts/conformance/modules/probe_impl/python/probe_impl.py",
+        "sees": ["probe", "probe_impl"],
+        "absent": ["probe_peer"],
+        "packages": []
+      }
+    ],
+    "contracts": {
+      "probe": "probe_impl"
+    },
+    "operations": {
+      "probe.log": "probe_impl"
+    },
+    "events": {
+      "probe.ping": "probe",
+      "probe_other.whisper": "probe_other"
+    },
+    "types": {
+      "probe.step": 1,
+      "probe_other.secret": 1
+    },
+    "config": {
+      "probe": {
+        "label": "probe"
+      },
+      "probe_impl": {
+        "mode": "default",
+        "depth": 1
+      },
+      "probe_other": {}
+    },
+    "records": {
+      "probe.step": {
+        "trace/v01": {
+          "tick": 0,
+          "in": "first",
+          "do": "records",
+          "id": "probe_other.secret"
+        },
+        "trace/v02": {
+          "tick": 0,
+          "in": "first",
+          "do": "events",
+          "id": "probe_other.whisper"
+        },
+        "trace/v03": {
+          "tick": 0,
+          "in": "first",
+          "do": "emit",
+          "id": "probe_other.whisper",
+          "payload": {}
+        },
+        "trace/v04": {
+          "tick": 0,
+          "in": "first",
+          "do": "configOf",
+          "id": "probe_other"
+        },
+        "trace/v05": {
+          "tick": 0,
+          "in": "first",
+          "do": "has",
+          "id": "probe_other"
+        },
+        "trace/v06": {
+          "tick": 0,
+          "in": "first",
+          "do": "call",
+          "id": "nowhere.op",
+          "payload": {}
+        },
+        "trace/v07": {
+          "tick": 0,
+          "in": "first",
+          "do": "events",
+          "id": "probe.nothing"
+        },
+        "trace/v08": {
+          "tick": 0,
+          "in": "first",
+          "do": "call",
+          "id": "probe.nothing"
+        },
+        "trace/v09": {
+          "tick": 0,
+          "in": "first",
+          "do": "has",
+          "id": "probe"
+        },
+        "trace/v10": {
+          "tick": 0,
+          "in": "first",
+          "do": "has",
+          "id": "probe_impl"
+        }
+      },
+      "probe_other.secret": {
+        "probe_other/one": {
+          "word": "hidden"
+        }
+      }
+    },
+    "assets": [],
+    "schedule": {
+      "fixed": ["probe_impl.first", "probe_impl.second"],
+      "frame": []
+    },
+    "schemas": {
+      "state": {
+        "probe_impl": "hosts/conformance/modules/probe_impl/schemas/state.schema.json"
+      },
+      "events": {
+        "probe.ping": "hosts/conformance/modules/probe/schemas/ping.schema.json",
+        "probe_other.whisper": "hosts/conformance/modules/probe_other/schemas/whisper.schema.json"
+      },
+      "params": {},
+      "results": {
+        "probe.log": "hosts/conformance/modules/probe/schemas/log.schema.json"
+      }
+    }
+  },
+  "inputs": [],
+  "expect": [
+    {
+      "at": 1,
+      "call": "probe.log",
+      "equals": [
+        {
+          "tick": 0,
+          "in": "first",
+          "do": "records",
+          "id": "probe_other.secret",
+          "error": "not visible: probe_other.secret from probe_impl"
+        },
+        {
+          "tick": 0,
+          "in": "first",
+          "do": "events",
+          "id": "probe_other.whisper",
+          "error": "not visible: probe_other.whisper from probe_impl"
+        },
+        {
+          "tick": 0,
+          "in": "first",
+          "do": "emit",
+          "id": "probe_other.whisper",
+          "error": "not visible: probe_other.whisper from probe_impl"
+        },
+        {
+          "tick": 0,
+          "in": "first",
+          "do": "configOf",
+          "id": "probe_other",
+          "error": "not visible: probe_other from probe_impl"
+        },
+        {
+          "tick": 0,
+          "in": "first",
+          "do": "has",
+          "id": "probe_other",
+          "error": "not visible: probe_other from probe_impl"
+        },
+        {
+          "tick": 0,
+          "in": "first",
+          "do": "call",
+          "id": "nowhere.op",
+          "error": "not visible: nowhere.op from probe_impl"
+        },
+        {
+          "tick": 0,
+          "in": "first",
+          "do": "events",
+          "id": "probe.nothing",
+          "error": "unknown: probe.nothing"
+        },
+        {
+          "tick": 0,
+          "in": "first",
+          "do": "call",
+          "id": "probe.nothing",
+          "error": "unknown: probe.nothing"
+        },
+        {
+          "tick": 0,
+          "in": "first",
+          "do": "has",
+          "id": "probe",
+          "result": true
+        },
+        {
+          "tick": 0,
+          "in": "first",
+          "do": "has",
+          "id": "probe_impl",
+          "result": true
+        }
+      ]
+    }
+  ]
+}

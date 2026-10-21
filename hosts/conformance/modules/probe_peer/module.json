@@ -1,0 +1,14 @@
+{
+  "$schema": "../../../../schemas/module.schema.json",
+  "id": "probe_peer",
+  "summary": "An optional peer of probe_impl: a counter with one fixed system between probe_impl's two, so presence and absence show in the traces.",
+  "events": { "note": "schemas/note.schema.json" },
+  "operations": {
+    "add": { "params": "schemas/add_params.schema.json", "result": "schemas/add_result.schema.json" }
+  },
+  "state": "schemas/state.schema.json",
+  "systems": [
+    { "name": "peer", "loop": "fixed", "after": ["probe_impl.first"], "before": ["probe_impl.second"] }
+  ],
+  "hosts": { "node": "ts/index.ts", "python": "python/probe_peer.py" }
+}

@@ -1,0 +1,31 @@
+{
+  "$schema": "../../../../../schemas/trace.schema.json",
+  "summary": "An input given to tick N reaches every system of tick N after the events emitted in tick N-1, and no tick returns it.",
+  "fixedHz": 50,
+  "ticks": 3,
+  "inputs": [
+    { "at": 0, "event": "probe.ping", "payload": { "n": 7 } },
+    { "at": 1, "event": "probe.ping", "payload": { "n": 8 } }
+  ],
+  "records": {
+    "probe.step": {
+      "i01": { "$version": 1, "tick": 0, "in": "first", "do": "events", "id": "probe.ping" },
+      "i02": { "$version": 1, "tick": 0, "in": "first", "do": "emit", "id": "probe.ping", "payload": { "n": 1 } },
+      "i03": { "$version": 1, "tick": 1, "in": "first", "do": "events", "id": "probe.ping" },
+      "i04": { "$version": 1, "tick": 2, "in": "first", "do": "events", "id": "probe.ping" }
+    }
+  },
+  "expect": [
+    {
+      "at": 3,
+      "call": "probe.log",
+      "equals": [
+        { "tick": 0, "in": "first", "do": "events", "id": "probe.ping", "result": [{ "n": 7 }] },
+        { "tick": 0, "in": "first", "do": "emit", "id": "probe.ping", "result": null },
+        { "tick": 1, "in": "first", "do": "events", "id": "probe.ping", "result": [{ "n": 1 }, { "n": 8 }] },
+        { "tick": 2, "in": "first", "do": "events", "id": "probe.ping", "result": [] }
+      ]
+    },
+    { "by": 3, "emitted": "probe.ping", "count": 1 }
+  ]
+}

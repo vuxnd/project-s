@@ -1,0 +1,28 @@
+{
+  "$schema": "../../../../../schemas/trace.schema.json",
+  "summary": "A trace's config merges over the defaults and reaches ctx.config and configOf for the module and for its contract.",
+  "fixedHz": 50,
+  "ticks": 1,
+  "config": {
+    "probe": { "label": "traced" },
+    "probe_impl": { "mode": "strict" }
+  },
+  "records": {
+    "probe.step": {
+      "c01": { "$version": 1, "tick": 0, "in": "first", "do": "config" },
+      "c02": { "$version": 1, "tick": 0, "in": "first", "do": "configOf", "id": "probe" },
+      "c03": { "$version": 1, "tick": 0, "in": "first", "do": "configOf", "id": "probe_impl" }
+    }
+  },
+  "expect": [
+    {
+      "at": 1,
+      "call": "probe.log",
+      "equals": [
+        { "tick": 0, "in": "first", "do": "config", "result": { "mode": "strict", "depth": 1 } },
+        { "tick": 0, "in": "first", "do": "configOf", "id": "probe", "result": { "label": "traced" } },
+        { "tick": 0, "in": "first", "do": "configOf", "id": "probe_impl", "result": { "mode": "strict", "depth": 1 } }
+      ]
+    }
+  ]
+}

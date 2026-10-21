@@ -1,0 +1,12 @@
+{
+  "$schema": "../../../../schemas/module.schema.json",
+  "id": "probe",
+  "summary": "The runtime contract made executable: steps written in a trace, and a log of what each runtime rule did with them.",
+  "contract": true,
+  "types": { "step": "schemas/step.schema.json" },
+  "events": { "ping": "schemas/ping.schema.json" },
+  "operations": {
+    "log": { "result": "schemas/log.schema.json" }
+  },
+  "config": { "schema": "schemas/config.schema.json", "defaults": { "label": "probe" } }
+}

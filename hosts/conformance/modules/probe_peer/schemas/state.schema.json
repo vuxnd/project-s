@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "State",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["total"],
+  "properties": {
+    "total": { "type": "integer" }
+  }
+}
