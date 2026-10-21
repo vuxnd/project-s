@@ -1,0 +1,20 @@
+{
+  "$schema": "../../../../schemas/trace.schema.json",
+  "summary": "A box dropped from 3 m comes to rest on the ground at half its height, with one contact.",
+  "fixedHz": 60,
+  "ticks": 120,
+  "config": { "physics": { "gravity": [0, -10, 0] } },
+  "records": {
+    "physics.body": {
+      "ball": { "$version": 1, "size": [1, 1, 1], "mass": 1 }
+    }
+  },
+  "inputs": [
+    { "at": 0, "event": "physics.spawn", "payload": { "id": "ball", "body": "trace/ball", "position": [0, 3, 0] } }
+  ],
+  "expect": [
+    { "at": 120, "call": "physics.position", "params": { "id": "ball" }, "pointer": "/1", "near": 0.5, "within": 0.001 },
+    { "by": 120, "emitted": "physics.contact", "count": 1 },
+    { "at": 120, "call": "physics.bodies", "pointer": "/0/id", "equals": "ball" }
+  ]
+}

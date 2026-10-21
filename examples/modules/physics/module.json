@@ -1,0 +1,13 @@
+{
+  "$schema": "../../../schemas/module.schema.json",
+  "id": "physics",
+  "summary": "Rigid boxes under gravity on a ground plane: spawn them, read their positions, hear first contacts.",
+  "contract": true,
+  "types": { "body": "schemas/body.schema.json" },
+  "events": { "spawn": "schemas/spawn.schema.json", "contact": "schemas/contact.schema.json" },
+  "operations": {
+    "position": { "params": "schemas/position_params.schema.json", "result": "schemas/position_result.schema.json" },
+    "bodies": { "result": "schemas/bodies_result.schema.json" }
+  },
+  "config": { "schema": "schemas/config.schema.json", "defaults": { "gravity": [0, -9.81, 0] } }
+}

@@ -1,0 +1,193 @@
+exports[`bundle examples sandbox node 1`] = `
+{
+  "format": 1,
+  "game": "sandbox",
+  "host": "node",
+  "fixedHz": 60,
+  "modules": [
+    {
+      "id": "physics_basic",
+      "entry": "examples/modules/physics_basic/ts/index.ts",
+      "sees": ["physics", "physics_basic"],
+      "absent": [],
+      "packages": []
+    },
+    {
+      "id": "sandbox_rules",
+      "entry": "examples/modules/sandbox_rules/ts/index.ts",
+      "sees": ["physics", "sandbox_rules"],
+      "absent": [],
+      "packages": []
+    }
+  ],
+  "contracts": {
+    "physics": "physics_basic"
+  },
+  "operations": {
+    "physics.bodies": "physics_basic",
+    "physics.position": "physics_basic"
+  },
+  "events": {
+    "physics.contact": "physics",
+    "physics.spawn": "physics"
+  },
+  "types": {
+    "physics.body": 1,
+    "sandbox_rules.spawn": 1
+  },
+  "config": {
+    "physics": {
+      "gravity": [0, -20, 0]
+    },
+    "physics_basic": {
+      "substeps": 1
+    },
+    "sandbox_rules": {}
+  },
+  "records": {
+    "physics.body": {
+      "sandbox_rules/crate": {
+        "size": [1, 1, 1],
+        "mass": 1
+      },
+      "sandbox_rules/plank": {
+        "size": [4, 0.5, 2],
+        "mass": 4
+      }
+    },
+    "sandbox_rules.spawn": {
+      "sandbox_rules/crate_a": {
+        "body": "sandbox_rules/crate",
+        "position": [0, 6, 0]
+      },
+      "sandbox_rules/crate_b": {
+        "body": "sandbox_rules/crate",
+        "position": [0.25, 9, 0]
+      },
+      "sandbox_rules/plank": {
+        "body": "sandbox_rules/plank",
+        "position": [0, 3.25, 0]
+      }
+    }
+  },
+  "assets": [],
+  "schedule": {
+    "fixed": ["physics_basic.integrate", "physics_basic.collide", "sandbox_rules.start"],
+    "frame": []
+  },
+  "schemas": {
+    "state": {
+      "physics_basic": "examples/modules/physics_basic/schemas/state.schema.json"
+    },
+    "events": {
+      "physics.contact": "examples/modules/physics/schemas/contact.schema.json",
+      "physics.spawn": "examples/modules/physics/schemas/spawn.schema.json"
+    },
+    "params": {
+      "physics.position": "examples/modules/physics/schemas/position_params.schema.json"
+    },
+    "results": {
+      "physics.bodies": "examples/modules/physics/schemas/bodies_result.schema.json",
+      "physics.position": "examples/modules/physics/schemas/position_result.schema.json"
+    }
+  }
+}
+
+`;
+
+exports[`bundle examples sandbox python 1`] = `
+{
+  "format": 1,
+  "game": "sandbox",
+  "host": "python",
+  "fixedHz": 60,
+  "modules": [
+    {
+      "id": "physics_basic",
+      "entry": "examples/modules/physics_basic/python/physics_basic.py",
+      "sees": ["physics", "physics_basic"],
+      "absent": [],
+      "packages": []
+    },
+    {
+      "id": "sandbox_rules",
+      "entry": "examples/modules/sandbox_rules/python/sandbox_rules.py",
+      "sees": ["physics", "sandbox_rules"],
+      "absent": [],
+      "packages": []
+    }
+  ],
+  "contracts": {
+    "physics": "physics_basic"
+  },
+  "operations": {
+    "physics.bodies": "physics_basic",
+    "physics.position": "physics_basic"
+  },
+  "events": {
+    "physics.contact": "physics",
+    "physics.spawn": "physics"
+  },
+  "types": {
+    "physics.body": 1,
+    "sandbox_rules.spawn": 1
+  },
+  "config": {
+    "physics": {
+      "gravity": [0, -20, 0]
+    },
+    "physics_basic": {
+      "substeps": 1
+    },
+    "sandbox_rules": {}
+  },
+  "records": {
+    "physics.body": {
+      "sandbox_rules/crate": {
+        "size": [1, 1, 1],
+        "mass": 1
+      },
+      "sandbox_rules/plank": {
+        "size": [4, 0.5, 2],
+        "mass": 4
+      }
+    },
+    "sandbox_rules.spawn": {
+      "sandbox_rules/crate_a": {
+        "body": "sandbox_rules/crate",
+        "position": [0, 6, 0]
+      },
+      "sandbox_rules/crate_b": {
+        "body": "sandbox_rules/crate",
+        "position": [0.25, 9, 0]
+      },
+      "sandbox_rules/plank": {
+        "body": "sandbox_rules/plank",
+        "position": [0, 3.25, 0]
+      }
+    }
+  },
+  "assets": [],
+  "schedule": {
+    "fixed": ["physics_basic.integrate", "physics_basic.collide", "sandbox_rules.start"],
+    "frame": []
+  },
+  "schemas": {
+    "state": {
+      "physics_basic": "examples/modules/physics_basic/schemas/state.schema.json"
+    },
+    "events": {
+      "physics.contact": "examples/modules/physics/schemas/contact.schema.json",
+      "physics.spawn": "examples/modules/physics/schemas/spawn.schema.json"
+    },
+    "params": {
+      "physics.position": "examples/modules/physics/schemas/position_params.schema.json"
+    },
+    "results": {
+      "physics.bodies": "examples/modules/physics/schemas/bodies_result.schema.json",
+      "physics.position": "examples/modules/physics/schemas/position_result.schema.json"
+    }
+  }
+}
+
+`;
