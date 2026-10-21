@@ -1,6 +1,8 @@
-// Voxel viewer page: fetches a model record, draws it with the rasterizer and turns it as the pointer drags.
+// Voxel viewer page: fetches a model record, draws it with the rasterizer, turns it as the pointer drags and plays a clip on a loop.
+import { pose } from '../../../modules/humanoid/ts/pose.ts';
+import type { Clip, Rig } from '../../../modules/humanoid/types.gen.ts';
 import { cells, extent, MARGIN, render, VIEWS } from '../raster.ts';
-import type { Box, Image, Vec3, View } from '../raster.ts';
+import type { Box, Image, Transform, Vec3, View } from '../raster.ts';
 
 export const DEFAULT_MODEL = 'modules/humanoid/content/humanoid.model/base.json';
 export const BACKGROUND = '#c9d3d8';   // the page background in index.html
@@ -8,6 +10,7 @@ export const MAX_PITCH = 80;
 export const DEGREES_PER_PIXEL = 0.5;
 
 const USAGE = 'usage: ?model=<path of a model .json from the repository root>';
+export const CLIP_USAGE = 'usage: ?clip=<path of a clip .json from the repository root>, a clip of the rig the model names';
 
 export interface Size { width: number; height: number }
 
@@ -20,18 +23,39 @@ export interface ViewEnv {
   onDrag(handler: (dx: number, dy: number) => void): void;   // pointer movement in CSS pixels
   onResize(handler: () => void): void;
   report(message: string): void;
+  now(): number;                                             // milliseconds, increasing; performance.now() in the page
 }
+
+const isRecordPath = (path: string): boolean => /\.json$/.test(path) && path.split('/').every((segment) => /^[A-Za-z0-9_][A-Za-z0-9_.-]*$/.test(segment));
 
 // The URL of the model record: a path from the repository root, or the default when the parameter is absent.
 export function modelUrl(search: string): string {
   const path = new URLSearchParams(search).get('model') ?? DEFAULT_MODEL;
-  if (!/\.json$/.test(path) || !path.split('/').every((segment) => /^[A-Za-z0-9_][A-Za-z0-9_.-]*$/.test(segment))) throw new Error(USAGE);
+  if (!isRecordPath(path)) throw new Error(USAGE);
   return `/${path}`;
 }
 
-// Every box of every part, in part order.
-export function boxes(record: unknown): Box[] {
-  return Object.values((record as { parts: Record<string, Box[]> }).parts).flat();
+// The URL of the clip record, or undefined when the address names none; a malformed path throws CLIP_USAGE.
+export function clipUrl(search: string): string | undefined {
+  const path = new URLSearchParams(search).get('clip');
+  if (path === null) return undefined;
+  if (!isRecordPath(path)) throw new Error(CLIP_USAGE);
+  return `/${path}`;
+}
+
+// The rig record `rig` (<module>/<name>) in the root that holds the clip at `clip`; anything else throws CLIP_USAGE.
+export function rigUrl(clip: string, rig: string): string {
+  const root = /^(.*?)\/modules\/[^/]+\/content\//.exec(clip);
+  const id = /^([A-Za-z0-9_-]+)\/([A-Za-z0-9_-]+)$/.exec(rig);
+  if (root === null || id === null) throw new Error(CLIP_USAGE);
+  return `${root[1]}/modules/${id[1]}/content/humanoid.rig/${id[2]}.json`;
+}
+
+// Every box of every part, in part order; with transforms, each box carries its part's transform.
+export function boxes(record: unknown, transforms?: Record<string, Transform>): Box[] {
+  const parts = (record as { parts: Record<string, Box[]> }).parts;
+  if (transforms === undefined) return Object.values(parts).flat();
+  return Object.entries(parts).flatMap(([name, list]) => list.map((box) => ({ ...box, transform: transforms[name] })));
 }
 
 // Pixels per cell, a whole number: the diagonal of the bounding box of the cells plus the margin fits the shorter side
@@ -49,11 +73,13 @@ export function nextView(view: View, dx: number, dy: number): View {
 }
 
 // Draws once the model is loaded, once per frame that saw a drag, and again after each resize; a bad address or record is
-// reported as the usage line.
+// reported as the usage line. With a clip, it draws the pose of every frame instead, looping the clip from the start; a bad
+// clip, or one of another rig than the model's, is reported as the clip usage line.
 export async function start(env: ViewEnv): Promise<void> {
-  let list: Box[], filled: Map<string, string>, centre: Vec3;
+  let model: unknown, list: Box[], filled: Map<string, string>, centre: Vec3;
   try {
-    list = boxes(await env.fetchJson(modelUrl(env.search)));
+    model = await env.fetchJson(modelUrl(env.search));
+    list = boxes(model);
     if (list.length === 0) throw new Error('no boxes');
     filled = cells(list);
     ({ centre } = extent(filled));
@@ -61,15 +87,30 @@ export async function start(env: ViewEnv): Promise<void> {
     env.report(USAGE);
     return;
   }
+  let play: { clip: Clip; rig: Rig } | undefined;
+  try {
+    const clipAt = clipUrl(env.search);
+    if (clipAt !== undefined) {
+      const clip = await env.fetchJson(clipAt) as Clip;
+      if (clip.rig !== (model as { rig: string }).rig) throw new Error('the clip is of another rig');
+      const rig = await env.fetchJson(rigUrl(clipAt, clip.rig)) as Rig;
+      boxes(model, pose(rig, clip, 0));   // a malformed record fails here, not inside a frame
+      play = { clip, rig };
+    }
+  } catch {
+    env.report(CLIP_USAGE);
+    return;
+  }
   let view: View = { ...VIEWS.quarter };
   let pending = false;
+  let shown = list;
   const redraw = (): void => {
     const size = env.size();
-    env.draw(render(list, view, { scale: fitScale(filled, size.width, size.height), background: BACKGROUND, centre }), size);
+    env.draw(render(shown, view, { scale: fitScale(filled, size.width, size.height), background: BACKGROUND, centre }), size);
   };
   env.onDrag((dx, dy) => {
     view = nextView(view, dx, dy);
-    if (pending) return;
+    if (play !== undefined || pending) return;   // while playing, the next frame draws the new view
     pending = true;
     env.requestFrame(() => {
       pending = false;
@@ -77,7 +118,18 @@ export async function start(env: ViewEnv): Promise<void> {
     });
   });
   env.onResize(redraw);
-  redraw();
+  if (play === undefined) {
+    redraw();
+    return;
+  }
+  const { clip, rig } = play;
+  const begin = env.now();
+  const frame = (): void => {
+    shown = boxes(model, pose(rig, clip, ((env.now() - begin) / 1000) % clip.duration));
+    redraw();
+    env.requestFrame(frame);
+  };
+  frame();
 }
 
 if (typeof document !== 'undefined') {
@@ -131,5 +183,6 @@ if (typeof document !== 'undefined') {
       watchDensity();
     },
     report: (message) => { caption.textContent = message; },
+    now: () => performance.now(),
   });
 }

@@ -2,10 +2,12 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
-import { BACKGROUND, DEFAULT_MODEL, boxes, fitScale, modelUrl, nextView, start } from '../view.ts';
+import { BACKGROUND, CLIP_USAGE, DEFAULT_MODEL, boxes, clipUrl, fitScale, modelUrl, nextView, rigUrl, start } from '../view.ts';
 import type { Size, ViewEnv } from '../view.ts';
+import { pose } from '../../../../modules/humanoid/ts/pose.ts';
+import type { Clip, Rig } from '../../../../modules/humanoid/types.gen.ts';
 import { cells, extent, render, VIEWS } from '../../raster.ts';
-import type { Image } from '../../raster.ts';
+import type { Image, Transform, Vec3 } from '../../raster.ts';
 
 const USAGE = 'usage: ?model=<path of a model .json from the repository root>';
 
@@ -18,11 +20,40 @@ test('boxes lists the boxes of every part in part order', () => {
   assert.deepEqual(boxes({ parts: {} }), []);
 });
 
+test('boxes gives each box the transform of its part', () => {
+  const still: Transform = { rotation: [[1, 0, 0], [0, 1, 0], [0, 0, 1]], translation: [0, 0, 0] };
+  const moved: Transform = { rotation: [[0, 0, 1], [0, 1, 0], [-1, 0, 0]], translation: [1, 2, 3] };
+  const list = boxes(record, { leg: still, arm: moved });
+  assert.deepEqual(list, [{ ...leg, transform: still }, { ...arm, transform: moved }]);
+  assert.equal(list[0].transform, still);
+  assert.equal(list[1].transform, moved);
+  const plain = boxes(record);
+  assert.equal(plain[0], leg);
+  assert.equal(plain[1], arm);
+});
+
 test('modelUrl defaults to the base humanoid and rejects a malformed path', () => {
   assert.equal(modelUrl(''), `/${DEFAULT_MODEL}`);
   assert.equal(modelUrl('?model=a/b.json'), '/a/b.json');
   for (const search of ['?model=', '?model=a', '?model=../a.json', '?model=/a.json', '?model=a//b.json', '?model=a%5Cb.json']) {
     assert.throws(() => modelUrl(search), { name: 'Error', message: USAGE }, search);
+  }
+});
+
+test('clipUrl is undefined without a clip and rejects a malformed path', () => {
+  assert.equal(clipUrl(''), undefined);
+  assert.equal(clipUrl('?model=a/b.json'), undefined);
+  assert.equal(clipUrl('?clip=a/b.json'), '/a/b.json');
+  for (const search of ['?clip=../a.json', '?clip=a', '?clip=', '?clip=/a.json']) {
+    assert.throws(() => clipUrl(search), { name: 'Error', message: CLIP_USAGE }, search);
+  }
+});
+
+test('rigUrl finds the rig record in the root that holds the clip', () => {
+  assert.equal(rigUrl('/modules/humanoid/content/humanoid.clip/walk.json', 'humanoid/base'), '/modules/humanoid/content/humanoid.rig/base.json');
+  assert.equal(rigUrl('/examples/modules/a/content/t/w.json', 'b/base'), '/examples/modules/b/content/humanoid.rig/base.json');
+  for (const [clip, rig] of [['/a/b.json', 'humanoid/base'], ['/modules/humanoid/content/x/w.json', 'base'], ['/modules/humanoid/content/x/w.json', '../a/base']]) {
+    assert.throws(() => rigUrl(clip, rig), { name: 'Error', message: CLIP_USAGE }, `${clip} ${rig}`);
   }
 });
 
@@ -68,12 +99,13 @@ function assertSameImage(actual: Image, expected: Image, message: string): void 
 }
 
 // An environment that records what start does; `fetched` lists the requested URLs. A frame callback runs at once,
-// or waits in `frames` when the test passes a list.
+// or waits in `frames` when the test passes a list. The clock starts at 0 ms and moves with `setClock`.
 function fakeEnv(fetchJson: (url: string) => Promise<unknown>, search = '', frames?: (() => void)[]) {
   const log = { fetched: [] as string[], draws: [] as { image: Image; size: Size }[], reports: [] as string[] };
   let drag: (dx: number, dy: number) => void = () => {};
   let resize: () => void = () => {};
   let size: Size = { width: 800, height: 600 };
+  let clock = 0;
   const env: ViewEnv = {
     search,
     size: () => size,
@@ -86,8 +118,14 @@ function fakeEnv(fetchJson: (url: string) => Promise<unknown>, search = '', fram
     onDrag: (handler) => { drag = handler; },
     onResize: (handler) => { resize = handler; },
     report: (message) => { log.reports.push(message); },
+    now: () => clock,
   };
-  return { env, log, drag: (dx: number, dy: number) => drag(dx, dy), resize: (s: Size) => { size = s; resize(); } };
+  return {
+    env, log,
+    drag: (dx: number, dy: number) => drag(dx, dy),
+    resize: (s: Size) => { size = s; resize(); },
+    setClock: (ms: number) => { clock = ms; },
+  };
 }
 
 test('start fetches the default model, draws once, and draws again after a drag', async () => {
@@ -182,6 +220,89 @@ test('the base model keeps 2 cells of background around it at every angle', asyn
         }
       }
       assert.ok(margin >= 2 * scale, `${yaw} ${pitch}: margin ${margin} px, scale ${scale}`);
+    }
+  }
+});
+
+const MODEL_URL = `/${DEFAULT_MODEL}`;
+const CLIP_PATH = 'modules/humanoid/content/humanoid.clip/walk.json';
+const RIG_URL = '/modules/humanoid/content/humanoid.rig/base.json';
+const readRecord = async (path: string): Promise<any> => JSON.parse(await readFile(new URL(`../../../../${path}`, import.meta.url), 'utf8'));
+
+test('start plays the clip on a loop, one frame at a time, and a drag only changes the view', async () => {
+  const model = await readRecord(DEFAULT_MODEL);
+  const clip: Clip = await readRecord(CLIP_PATH);
+  const rig: Rig = await readRecord('modules/humanoid/content/humanoid.rig/base.json');
+  const records: Record<string, unknown> = { [MODEL_URL]: model, [`/${CLIP_PATH}`]: clip, [RIG_URL]: rig };
+  const frames: (() => void)[] = [];
+  const { env, log, drag, setClock } = fakeEnv(async (url) => records[url], `?clip=${CLIP_PATH}`, frames);
+  await start(env);
+  assert.deepEqual(log.fetched, [MODEL_URL, `/${CLIP_PATH}`, RIG_URL]);
+  assert.deepEqual(log.reports, []);
+  const filled = cells(boxes(model));
+  const restOptions = { scale: fitScale(filled, 800, 600), background: BACKGROUND, centre: extent(filled).centre };
+  const at = (time: number, view = VIEWS.quarter): Image => render(boxes(model, pose(rig, clip, time)), view, restOptions);
+  const next = (): void => {
+    assert.equal(frames.length, 1, 'exactly one frame is queued');
+    frames.shift()!();
+  };
+  assert.equal(log.draws.length, 1);
+  assertSameImage(log.draws[0].image, at(0), 'first draw');
+  assert.ok(!sameBytes(log.draws[0].image, at(0.25)), 'the pose at 0.25 differs from the pose at 0');
+  setClock(250);
+  next();
+  assert.equal(log.draws.length, 2);
+  assertSameImage(log.draws[1].image, at(0.25), 'at 250 ms');
+  setClock(1250);
+  next();
+  assert.equal(log.draws.length, 3);
+  assertSameImage(log.draws[2].image, at(0.25), 'at 1250 ms');
+  drag(40, 0);
+  assert.equal(frames.length, 1, 'a drag queues no extra frame');
+  assert.equal(log.draws.length, 3, 'a drag draws nothing at once');
+  next();
+  assert.equal(log.draws.length, 4);
+  assertSameImage(log.draws[3].image, at(0.25, nextView({ ...VIEWS.quarter }, 40, 0)), 'after the drag');
+  assert.equal(frames.length, 1);
+});
+
+test('start reports the clip usage line and draws nothing when the clip or its rig cannot be used', async () => {
+  const model = await readRecord(DEFAULT_MODEL);
+  const clip = await readRecord(CLIP_PATH);
+  const rig = await readRecord('modules/humanoid/content/humanoid.rig/base.json');
+  const serve = (records: Record<string, unknown>) => async (url: string): Promise<unknown> => {
+    if (!(url in records)) throw new Error(`404 ${url}`);
+    return records[url];
+  };
+  const whole = { [MODEL_URL]: model, [`/${CLIP_PATH}`]: clip, [RIG_URL]: rig };
+  for (const [name, fetchJson, search] of [
+    ['clip fetch fails', serve({ [MODEL_URL]: model, [RIG_URL]: rig }), `?clip=${CLIP_PATH}`],
+    ['clip of another rig', serve({ ...whole, [`/${CLIP_PATH}`]: { ...clip, rig: 'humanoid/other' } }), `?clip=${CLIP_PATH}`],
+    ['clip path malformed', serve(whole), '?clip=../walk.json'],
+    ['rig fetch fails', serve({ [MODEL_URL]: model, [`/${CLIP_PATH}`]: clip }), `?clip=${CLIP_PATH}`],
+  ] as const) {
+    const { env, log } = fakeEnv(fetchJson, search, []);
+    await start(env);
+    assert.deepEqual(log.reports, [CLIP_USAGE], name);
+    assert.equal(log.draws.length, 0, name);
+  }
+});
+
+test('the walking base model stays inside the sphere its rest pose fits in', async () => {
+  const model = await readRecord(DEFAULT_MODEL);
+  const clip: Clip = await readRecord(CLIP_PATH);
+  const rig: Rig = await readRecord('modules/humanoid/content/humanoid.rig/base.json');
+  const { centre, diagonal } = extent(cells(boxes(model)));
+  const radius = diagonal / 2;
+  for (let i = 0; i < 40; i++) {
+    const time = (i / 40) * clip.duration;
+    for (const { from, to, transform } of boxes(model, pose(rig, clip, time))) {
+      const { rotation, translation } = transform!;
+      for (const x of [from[0] - 0.5, to[0] + 0.5]) for (const y of [from[1] - 0.5, to[1] + 0.5]) for (const z of [from[2] - 0.5, to[2] + 0.5]) {
+        const moved = rotation.map((row, k) => row[0] * x + row[1] * y + row[2] * z + translation[k]) as Vec3;
+        const distance = Math.hypot(moved[0] - centre[0], moved[1] - centre[1], moved[2] - centre[2]);
+        assert.ok(distance <= radius, `time ${time}: corner ${moved.join(',')} is ${distance} from the centre, radius ${radius}`);
+      }
     }
   }
 });
