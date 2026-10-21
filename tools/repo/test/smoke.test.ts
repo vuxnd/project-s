@@ -42,23 +42,23 @@ const options = {
   host: {},
 };
 
-// Loads the bundle on the Node runtime and runs it for TICKS ticks with no inputs; the events are what tick() returned, counted by id.
-async function playNode(bundle: Bundle): Promise<{ game: Game; result: Result }> {
+// Loads the bundle on the Node runtime and runs it for the given number of ticks (TICKS by default) with no inputs; the events are what tick() returned, counted by id.
+async function playNode(bundle: Bundle, ticks = TICKS): Promise<{ game: Game; result: Result }> {
   const game = await load(bundle, options);
   const events: Record<string, number> = {};
-  for (let i = 0; i < TICKS; i++) {
+  for (let i = 0; i < ticks; i++) {
     for (const { event } of game.tick()) events[event] = (events[event] ?? 0) + 1;
   }
   return { game, result: { snapshot: game.snapshot(), events } };
 }
 
-// The result hosts/python/play.py prints for the bundle, or null when run.ts found no Python and skipped (with REQUIRE_HOSTS=python it exits 1 instead).
-function playPython(bundle: Bundle): Result | null {
+// The result hosts/python/play.py prints for the bundle after the given number of ticks (TICKS by default), or null when run.ts found no Python and skipped (with REQUIRE_HOSTS=python it exits 1 instead).
+function playPython(bundle: Bundle, ticks = TICKS): Result | null {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-'));
   try {
     const file = path.join(dir, 'bundle.json');
     writeJson(file, bundle as unknown as Json);
-    const run = spawnSync(process.execPath, ['hosts/python/run.ts', 'hosts/python/play.py', file, String(TICKS)], { cwd: repoRoot, encoding: 'utf8' });
+    const run = spawnSync(process.execPath, ['hosts/python/run.ts', 'hosts/python/play.py', file, String(ticks)], { cwd: repoRoot, encoding: 'utf8' });
     assert.equal(run.status, 0, `${run.stdout}${run.stderr}`);
     const last = run.stdout.split(/\r?\n/).filter((line) => line !== '').at(-1) ?? '';
     return last === 'SKIPPED python (not found)' ? null : (JSON.parse(last) as Result);
@@ -123,4 +123,13 @@ test('smoke examples sandbox: two games loaded in one process, ticked in turn, e
   }
   assert.deepEqual(a.snapshot(), single);
   assert.deepEqual(b.snapshot(), single);
+});
+
+// At tick 300 every body rests at a height the collision rule sets exactly, so that comparison cannot see how the bodies moved; at tick 40 the plank rests and both crates are still falling.
+test('smoke examples sandbox: node and python agree after 40 ticks, while the crates fall', async (t) => {
+  const python = playPython(build('examples', 'sandbox', 'python'), 40);
+  if (python === null) return t.skip('python not found');
+  const { result } = await playNode(build('examples', 'sandbox', 'node'), 40);
+  assert.deepEqual(result.events, { 'physics.spawn': 3, 'physics.contact': 1 });
+  assert.ok(closeEqual(result, python), `node and python differ:\n${JSON.stringify(result)}\n${JSON.stringify(python)}`);
 });

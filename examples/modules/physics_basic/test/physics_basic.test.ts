@@ -95,6 +95,7 @@ test('a body lands on a resting one and rests on its top', () => {
   const sim = simulation();
   sim.tick(spawn('a', [0, 0.5, 0]));
   sim.tick(spawn('b', [0.25, 3, 0]));
+  assert.equal(sim.ctx.state.bodies.b.resting, false);
   sim.run(120);
   const { a, b } = sim.ctx.state.bodies;
   assert.deepEqual([a.position[1], b.position[1], b.resting], [0.5, 1.5, true]);
@@ -104,10 +105,10 @@ test('a body lands on a resting one and rests on its top', () => {
 test('a body that only touches the side of a resting one falls to the ground', () => {
   const sim = simulation();
   sim.tick(spawn('a', [0, 0.5, 0]));
-  sim.tick(spawn('b', [1, 3, 0]));
+  sim.tick(spawn('b', [1, 3, 0]), spawn('c', [0, 6, 1]));
   sim.run(120);
-  assert.equal(sim.ctx.state.bodies.b.position[1], 0.5);
-  assert.deepEqual(sim.emitted.map((e) => e.payload), [{ id: 'a', with: 'ground' }, { id: 'b', with: 'ground' }]);
+  assert.deepEqual([sim.ctx.state.bodies.b.position[1], sim.ctx.state.bodies.c.position[1]], [0.5, 0.5]);
+  assert.deepEqual(sim.emitted.map((e) => e.payload), [{ id: 'a', with: 'ground' }, { id: 'b', with: 'ground' }, { id: 'c', with: 'ground' }]);
 });
 
 test('position returns a copy of the centre, or null for an unknown id; bodies lists id, position and size sorted by id', () => {
