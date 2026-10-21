@@ -1,0 +1,6 @@
+{
+  "$schema": "../../schemas/spawn.schema.json",
+  "$version": 1,
+  "body": "sandbox_rules/crate",
+  "position": [0.25, 9, 0]
+}

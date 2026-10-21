@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Spawn",
+  "description": "A body that appears at tick 0.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$version", "body", "position"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "$version": { "const": 1 },
+    "$comment": { "type": "string" },
+    "body": { "type": "string", "x-ref": "physics.body" },
+    "position": { "$ref": "../../physics/schemas/vec3.schema.json", "x-unit": "m" }
+  }
+}

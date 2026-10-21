@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Vec3",
+  "description": "x, y, z; right-handed, +Y up, +Z forward (glTF 2.0 axes).",
+  "type": "array",
+  "items": { "type": "number" },
+  "minItems": 3,
+  "maxItems": 3
+}

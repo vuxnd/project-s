@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["scale"],
+  "properties": {
+    "scale": { "type": "number", "exclusiveMinimum": 0, "x-unit": "px/m", "description": "Canvas pixels per metre." },
+    "clickBody": { "type": "string", "description": "Id of the physics.body record a click spawns; without it clicks spawn nothing." }
+  }
+}

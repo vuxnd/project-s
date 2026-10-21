@@ -1,0 +1,7 @@
+{
+  "$schema": "../../schemas/cue.schema.json",
+  "$version": 1,
+  "event": "physics.contact",
+  "frequency": 440,
+  "duration": 0.08
+}

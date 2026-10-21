@@ -26,7 +26,7 @@ npm test
 | `npm run gen` | writes `types.gen.ts` for every module; `npm run gen -- --check` only compares |
 | `npm run build -- <game> --host <host> --root <root>` | writes `build/<root>/games/<game>/<host>/bundle.json` |
 | `npm run migrate` | lists records older than their type; `npm run migrate -- --write` rewrites them |
-| `node --test --test-update-snapshots tools/repo/test/examples.test.ts` | rewrites the bundle snapshot of every game; run it after an intended change to a game, its modules, records or config, which `npm test` reports as a snapshot mismatch |
+| `node --test --test-update-snapshots tools/repo/test/examples.test.ts` | rewrites the bundle snapshot of every game of `.` and of the frozen sandbox root `tools/repo/test/fixtures/roots/sandbox`; run it after an intended change to one of those games, its modules, records or config, which `npm test` reports as a snapshot mismatch |
 | `npm run serve` | serves the repository for the web host on port 8080 |
 | `node tools/repo/cli.ts help` | lists the tool's commands |
 | `node tools/repo/cli.ts traces --host <host> --root <root>` | compiles a root's traces into trace bundles |

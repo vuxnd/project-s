@@ -1,0 +1,13 @@
+{
+  "$schema": "../../../../../../../../schemas/module.schema.json",
+  "id": "physics_basic",
+  "summary": "Implements physics with semi-implicit Euler steps, inelastic contacts and stacking.",
+  "implements": ["physics"],
+  "state": "schemas/state.schema.json",
+  "config": { "schema": "schemas/config.schema.json", "defaults": { "substeps": 1 } },
+  "systems": [
+    { "name": "integrate", "loop": "fixed" },
+    { "name": "collide", "loop": "fixed" }
+  ],
+  "hosts": { "node": "ts/index.ts", "web": "ts/index.ts", "python": "python/physics_basic.py" }
+}

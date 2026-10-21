@@ -1,0 +1,9 @@
+{
+  "$schema": "../../../../../../../../schemas/module.schema.json",
+  "id": "sandbox_rules",
+  "summary": "Spawns the sandbox's two crates and its plank at tick 0.",
+  "requires": ["physics"],
+  "types": { "spawn": "schemas/spawn.schema.json" },
+  "systems": [{ "name": "start", "loop": "fixed" }],
+  "hosts": { "node": "ts/index.ts", "web": "ts/index.ts", "python": "python/sandbox_rules.py" }
+}

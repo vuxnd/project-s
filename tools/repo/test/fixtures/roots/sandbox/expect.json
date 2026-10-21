@@ -1,0 +1,6 @@
+{
+  "$comment": "The frozen sandbox: the smoke, walkthrough and snapshot tests pin its exact behaviour. It changes only for a compiler or contract change, never to follow examples/.",
+  "errors": [],
+  "warnings": [],
+  "generated": true
+}

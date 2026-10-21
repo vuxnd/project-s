@@ -6,6 +6,7 @@ import path from 'node:path';
 import { test } from 'node:test';
 import { MAX_TICKS_PER_FRAME, bundleUrl, start, step } from '../host.ts';
 import type { Clock, WebEnv } from '../host.ts';
+import { load } from '../../runtime.ts';
 import type { Bundle, Ctx, Game, ModuleEntry } from '../../runtime.ts';
 
 const USAGE = 'usage: ?root=<root>&game=<game>';
@@ -237,6 +238,13 @@ test('start reports an error from load', async () => {
   assert.equal(callbacks.length, 0);
 });
 
+test('start loads in debug mode: state that is not JSON is reported at load (R18)', async () => {
+  const { env, callbacks, asked } = fakeEnv({ async importer() { return { ...counter({}), init: () => ({ v: NaN }) }; } });
+  await assert.rejects(start(env), { message: 'state not JSON: m' });
+  assert.deepEqual(asked.reports, ['state not JSON: m']);
+  assert.equal(callbacks.length, 0);
+});
+
 test('start reports an error module code throws in the loop and stops the loop', async () => {
   const broken: ModuleEntry = { ...counter({}), count() { throw new Error('boom'); } };
   const { env, callbacks, asked } = fakeEnv({ async importer() { return broken; } });
@@ -246,6 +254,46 @@ test('start reports an error module code throws in the loop and stops the loop',
   runFrame(callbacks, 20);   // 20 ms is past 1/64 s, so the fixed system runs
   assert.deepEqual(asked.reports, ['boom']);
   assert.equal(callbacks.length, 0);
+});
+
+// Input to tick (README, Input): the same input at the same time lands in a different tick under a different frame schedule.
+// Module m queues a click in its listener, its frame system emits m.click, and its fixed system keeps the tick number in which it first sees the event.
+async function clickSeenAt(frameMs: number): Promise<{ seen: number | null; ticksAfterEmit: number; perFrame: number }> {
+  let press = (): void => { throw new Error('no listener'); };
+  const canvas = { addEventListener(_type: string, listener: () => void) { press = listener; } };
+  const entry: ModuleEntry = {
+    init(ctx: Ctx) { canvas.addEventListener('pointerdown', () => { (ctx.state as { pending: number }).pending++; }); return { pending: 0, seen: null }; },
+    emit(ctx: Ctx) {
+      const state = ctx.state as { pending: number };
+      for (; state.pending > 0; state.pending--) ctx.emit('m.click', {});
+    },
+    read(ctx: Ctx) {
+      const state = ctx.state as { seen: number | null };
+      if (state.seen === null && ctx.events('m.click').length > 0) state.seen = ctx.tick;
+    },
+  };
+  const bundle: Bundle = { ...WEB_BUNDLE, fixedHz: 60, events: { 'm.click': 'm' }, schedule: { fixed: ['m.read'], frame: ['m.emit'] } };
+  const game = await load(bundle, { host: { canvas }, importer: async () => entry, debug: true });
+  const clock = newClock();
+  step(clock, 0, 60, game);   // the first frame only draws
+  press();   // between the first and the second frame
+  const perFrame = step(clock, frameMs, 60, game);   // the ticks due run, then the frame system emits the click
+  const ticksAfterEmit = game.ticks;
+  for (let n = 2; n <= 4; n++) step(clock, n * frameMs, 60, game);
+  return { seen: (game.snapshot() as { m: { seen: number | null } }).m.seen, ticksAfterEmit, perFrame };
+}
+
+test('the tick in which a fixed system sees a browser input follows the frame schedule, for the same input time', async () => {
+  const hair = 1000 / 60 + 0.01;   // a frame period a hair over one tick, so float rounding cannot lose a tick
+  const one = await clickSeenAt(hair);   // frames every 1/60 s: one tick per frame
+  const two = await clickSeenAt(2 * hair);   // frames every 2/60 s: two ticks per frame
+  assert.deepEqual([one.perFrame, two.perFrame], [1, 2]);
+  assert.equal(one.seen, 1);
+  assert.equal(two.seen, 2);
+  // The event is emitted in the frame run after the ticks of that frame, so the first tick that sees it is the one after them.
+  assert.equal(one.seen, one.ticksAfterEmit);
+  assert.equal(two.seen, two.ticksAfterEmit);
+  assert.ok(two.seen! > one.seen!);
 });
 
 test('importing host.ts in Node starts nothing', async (t) => {

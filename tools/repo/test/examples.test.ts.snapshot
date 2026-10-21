@@ -1,4 +1,4 @@
-exports[`bundle examples sandbox node 1`] = `
+exports[`bundle tools/repo/test/fixtures/roots/sandbox sandbox node 1`] = `
 {
   "format": 1,
   "game": "sandbox",
@@ -7,14 +7,14 @@ exports[`bundle examples sandbox node 1`] = `
   "modules": [
     {
       "id": "physics_basic",
-      "entry": "examples/modules/physics_basic/ts/index.ts",
+      "entry": "tools/repo/test/fixtures/roots/sandbox/modules/physics_basic/ts/index.ts",
       "sees": ["physics", "physics_basic"],
       "absent": [],
       "packages": []
     },
     {
       "id": "sandbox_rules",
-      "entry": "examples/modules/sandbox_rules/ts/index.ts",
+      "entry": "tools/repo/test/fixtures/roots/sandbox/modules/sandbox_rules/ts/index.ts",
       "sees": ["physics", "sandbox_rules"],
       "absent": [],
       "packages": []
@@ -77,25 +77,25 @@ exports[`bundle examples sandbox node 1`] = `
   },
   "schemas": {
     "state": {
-      "physics_basic": "examples/modules/physics_basic/schemas/state.schema.json"
+      "physics_basic": "tools/repo/test/fixtures/roots/sandbox/modules/physics_basic/schemas/state.schema.json"
     },
     "events": {
-      "physics.contact": "examples/modules/physics/schemas/contact.schema.json",
-      "physics.spawn": "examples/modules/physics/schemas/spawn.schema.json"
+      "physics.contact": "tools/repo/test/fixtures/roots/sandbox/modules/physics/schemas/contact.schema.json",
+      "physics.spawn": "tools/repo/test/fixtures/roots/sandbox/modules/physics/schemas/spawn.schema.json"
     },
     "params": {
-      "physics.position": "examples/modules/physics/schemas/position_params.schema.json"
+      "physics.position": "tools/repo/test/fixtures/roots/sandbox/modules/physics/schemas/position_params.schema.json"
     },
     "results": {
-      "physics.bodies": "examples/modules/physics/schemas/bodies_result.schema.json",
-      "physics.position": "examples/modules/physics/schemas/position_result.schema.json"
+      "physics.bodies": "tools/repo/test/fixtures/roots/sandbox/modules/physics/schemas/bodies_result.schema.json",
+      "physics.position": "tools/repo/test/fixtures/roots/sandbox/modules/physics/schemas/position_result.schema.json"
     }
   }
 }
 
 `;
 
-exports[`bundle examples sandbox python 1`] = `
+exports[`bundle tools/repo/test/fixtures/roots/sandbox sandbox python 1`] = `
 {
   "format": 1,
   "game": "sandbox",
@@ -104,14 +104,14 @@ exports[`bundle examples sandbox python 1`] = `
   "modules": [
     {
       "id": "physics_basic",
-      "entry": "examples/modules/physics_basic/python/physics_basic.py",
+      "entry": "tools/repo/test/fixtures/roots/sandbox/modules/physics_basic/python/physics_basic.py",
       "sees": ["physics", "physics_basic"],
       "absent": [],
       "packages": []
     },
     {
       "id": "sandbox_rules",
-      "entry": "examples/modules/sandbox_rules/python/sandbox_rules.py",
+      "entry": "tools/repo/test/fixtures/roots/sandbox/modules/sandbox_rules/python/sandbox_rules.py",
       "sees": ["physics", "sandbox_rules"],
       "absent": [],
       "packages": []
@@ -174,25 +174,25 @@ exports[`bundle examples sandbox python 1`] = `
   },
   "schemas": {
     "state": {
-      "physics_basic": "examples/modules/physics_basic/schemas/state.schema.json"
+      "physics_basic": "tools/repo/test/fixtures/roots/sandbox/modules/physics_basic/schemas/state.schema.json"
     },
     "events": {
-      "physics.contact": "examples/modules/physics/schemas/contact.schema.json",
-      "physics.spawn": "examples/modules/physics/schemas/spawn.schema.json"
+      "physics.contact": "tools/repo/test/fixtures/roots/sandbox/modules/physics/schemas/contact.schema.json",
+      "physics.spawn": "tools/repo/test/fixtures/roots/sandbox/modules/physics/schemas/spawn.schema.json"
     },
     "params": {
-      "physics.position": "examples/modules/physics/schemas/position_params.schema.json"
+      "physics.position": "tools/repo/test/fixtures/roots/sandbox/modules/physics/schemas/position_params.schema.json"
     },
     "results": {
-      "physics.bodies": "examples/modules/physics/schemas/bodies_result.schema.json",
-      "physics.position": "examples/modules/physics/schemas/position_result.schema.json"
+      "physics.bodies": "tools/repo/test/fixtures/roots/sandbox/modules/physics/schemas/bodies_result.schema.json",
+      "physics.position": "tools/repo/test/fixtures/roots/sandbox/modules/physics/schemas/position_result.schema.json"
     }
   }
 }
 
 `;
 
-exports[`bundle examples sandbox web 1`] = `
+exports[`bundle tools/repo/test/fixtures/roots/sandbox sandbox web 1`] = `
 {
   "format": 1,
   "game": "sandbox",
@@ -201,28 +201,28 @@ exports[`bundle examples sandbox web 1`] = `
   "modules": [
     {
       "id": "physics_basic",
-      "entry": "examples/modules/physics_basic/ts/index.ts",
+      "entry": "tools/repo/test/fixtures/roots/sandbox/modules/physics_basic/ts/index.ts",
       "sees": ["physics", "physics_basic"],
       "absent": [],
       "packages": []
     },
     {
       "id": "audio",
-      "entry": "examples/modules/audio/web/index.ts",
+      "entry": "tools/repo/test/fixtures/roots/sandbox/modules/audio/web/index.ts",
       "sees": ["audio", "physics"],
       "absent": [],
       "packages": []
     },
     {
       "id": "render_boxes",
-      "entry": "examples/modules/render_boxes/web/index.ts",
+      "entry": "tools/repo/test/fixtures/roots/sandbox/modules/render_boxes/web/index.ts",
       "sees": ["physics", "render_boxes"],
       "absent": [],
       "packages": []
     },
     {
       "id": "sandbox_rules",
-      "entry": "examples/modules/sandbox_rules/ts/index.ts",
+      "entry": "tools/repo/test/fixtures/roots/sandbox/modules/sandbox_rules/ts/index.ts",
       "sees": ["physics", "sandbox_rules"],
       "absent": [],
       "packages": []
@@ -300,19 +300,19 @@ exports[`bundle examples sandbox web 1`] = `
   },
   "schemas": {
     "state": {
-      "physics_basic": "examples/modules/physics_basic/schemas/state.schema.json",
-      "render_boxes": "examples/modules/render_boxes/schemas/state.schema.json"
+      "physics_basic": "tools/repo/test/fixtures/roots/sandbox/modules/physics_basic/schemas/state.schema.json",
+      "render_boxes": "tools/repo/test/fixtures/roots/sandbox/modules/render_boxes/schemas/state.schema.json"
     },
     "events": {
-      "physics.contact": "examples/modules/physics/schemas/contact.schema.json",
-      "physics.spawn": "examples/modules/physics/schemas/spawn.schema.json"
+      "physics.contact": "tools/repo/test/fixtures/roots/sandbox/modules/physics/schemas/contact.schema.json",
+      "physics.spawn": "tools/repo/test/fixtures/roots/sandbox/modules/physics/schemas/spawn.schema.json"
     },
     "params": {
-      "physics.position": "examples/modules/physics/schemas/position_params.schema.json"
+      "physics.position": "tools/repo/test/fixtures/roots/sandbox/modules/physics/schemas/position_params.schema.json"
     },
     "results": {
-      "physics.bodies": "examples/modules/physics/schemas/bodies_result.schema.json",
-      "physics.position": "examples/modules/physics/schemas/position_result.schema.json"
+      "physics.bodies": "tools/repo/test/fixtures/roots/sandbox/modules/physics/schemas/bodies_result.schema.json",
+      "physics.position": "tools/repo/test/fixtures/roots/sandbox/modules/physics/schemas/position_result.schema.json"
     }
   }
 }

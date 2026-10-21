@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "State",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["bodies"],
+  "properties": {
+    "bodies": {
+      "type": "object",
+      "propertyNames": { "type": "string" },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["position", "velocity", "size", "resting"],
+        "properties": {
+          "position": { "$ref": "../../physics/schemas/vec3.schema.json" },
+          "velocity": { "$ref": "../../physics/schemas/vec3.schema.json" },
+          "size": { "$ref": "../../physics/schemas/vec3.schema.json" },
+          "resting": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}

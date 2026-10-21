@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Contact",
+  "description": "A body touched the ground or a resting body for the first time.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "with"],
+  "properties": {
+    "id": { "type": "string" },
+    "with": { "type": "string", "description": "The other body's id, or ground." }
+  }
+}

@@ -1,4 +1,4 @@
-// Walkthroughs of ARCHITECTURE.md as tests: each applies a change to a temporary copy of schemas/ and examples/ and checks the result (plan.md 4.18).
+// Walkthroughs of ARCHITECTURE.md as tests: each applies a change to a temporary copy of schemas/ and the frozen sandbox root and checks the result (plan.md 4.18).
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -22,6 +22,7 @@ import { compileTraces, listTraces } from '../lib/traces.ts';
 import { createValidator } from '../lib/validate.ts';
 
 const repoRoot = path.resolve(import.meta.dirname, '..', '..', '..');
+const SANDBOX = 'tools/repo/test/fixtures/roots/sandbox';
 const temps: string[] = [];
 
 after(() => {
@@ -90,23 +91,23 @@ function buildGame(dir: string, root: string, game: string, host: string) {
 }
 
 test('walkthrough (b) replace physics', async () => {
-  const dir = copyToTemp(['schemas', 'examples']);
-  const modules = path.join(dir, 'examples', 'modules');
+  const dir = copyToTemp(['schemas', SANDBOX]);
+  const modules = path.join(dir, ...SANDBOX.split('/'), 'modules');
   fs.cpSync(path.join(modules, 'physics_basic'), path.join(modules, 'physics_alt'), { recursive: true });
-  editJson(dir, 'examples/modules/physics_alt/module.json', (manifest) => {
+  editJson(dir, `${SANDBOX}/modules/physics_alt/module.json`, (manifest) => {
     manifest.id = 'physics_alt';
   });
-  editJson(dir, 'examples/games/sandbox/game.json', (game) => {
+  editJson(dir, `${SANDBOX}/games/sandbox/game.json`, (game) => {
     game.modules = Object.fromEntries(Object.entries(game.modules as JsonObject).map(([id, entry]) => [id === 'physics_basic' ? 'physics_alt' : id, entry]));
   });
 
-  assert.deepEqual(errorRules(dir, 'examples'), []);
-  assert.deepEqual(warningRules(dir, 'examples'), []);
-  const implementations = compileContract(dir, 'examples', 'physics', 'node').bundles.map((b) => b.value.implementation);
+  assert.deepEqual(errorRules(dir, SANDBOX), []);
+  assert.deepEqual(warningRules(dir, SANDBOX), []);
+  const implementations = compileContract(dir, SANDBOX, 'physics', 'node').bundles.map((b) => b.value.implementation);
   assert.deepEqual([...new Set(implementations)].sort(), ['physics_alt', 'physics_basic']);
-  assert.deepEqual(await runContractTraces(dir, 'examples', 'physics', 'node'), []);
+  assert.deepEqual(await runContractTraces(dir, SANDBOX, 'physics', 'node'), []);
 
-  const built = buildGame(dir, 'examples', 'sandbox', 'node');
+  const built = buildGame(dir, SANDBOX, 'sandbox', 'node');
   assert.deepEqual(built.problems, []);
   assert.equal(built.bundle!.contracts.physics, 'physics_alt');
 });
@@ -122,46 +123,46 @@ const SIZE_READER = '[...records[spawn.body].size]';
 const HALF_EXTENTS_READER = 'records[spawn.body].halfExtents.map((half) => half * 2)';   // the TS reader only: this walkthrough runs the node host
 
 test('walkthrough (e) bump physics.body', async () => {
-  const dir = copyToTemp(['schemas', 'examples']);
-  editJson(dir, 'examples/modules/physics/schemas/body.schema.json', (schema) => {
+  const dir = copyToTemp(['schemas', SANDBOX]);
+  editJson(dir, `${SANDBOX}/modules/physics/schemas/body.schema.json`, (schema) => {
     const properties = schema.properties as JsonObject;
     (properties.$version as JsonObject).const = 2;
     schema.properties = Object.fromEntries(Object.entries(properties).map(([key, value]) => (key === 'size' ? ['halfExtents', { ...(value as JsonObject), description: 'Half extents.' }] : [key, value])));
     schema.required = (schema.required as string[]).map((key) => (key === 'size' ? 'halfExtents' : key));
   });
-  const steps = path.join(dir, 'examples', 'modules', 'physics', 'migrations', 'body');
+  const steps = path.join(dir, ...SANDBOX.split('/'), 'modules', 'physics', 'migrations', 'body');
   writeText(path.join(steps, '2.ts'), MIGRATE_2);
   writeJson(path.join(steps, '2.before.json'), { $version: 1, size: [2, 2, 2], mass: 1 });
   writeJson(path.join(steps, '2.after.json'), { $version: 2, mass: 1, halfExtents: [1, 1, 1] });
-  const reader = path.join(dir, 'examples', 'modules', 'physics_basic', 'ts', 'index.ts');
+  const reader = path.join(dir, ...SANDBOX.split('/'), 'modules', 'physics_basic', 'ts', 'index.ts');
   const source = readText(reader);
   assert.ok(source.includes(SIZE_READER), `${SIZE_READER} is not in physics_basic/ts/index.ts`);
   writeText(reader, source.replace(SIZE_READER, HALF_EXTENTS_READER));
 
-  assert.deepEqual(errorRules(dir, 'examples'), ['outdated-record']);
-  const plan = await planMigrations(dir, 'examples', createValidator(dir));
+  assert.deepEqual(errorRules(dir, SANDBOX), ['outdated-record']);
+  const plan = await planMigrations(dir, SANDBOX, createValidator(dir));
   assert.deepEqual(plan.problems, []);
   assert.deepEqual([...plan.files.keys()], [
-    'examples/modules/physics/conformance/fall.json',
-    'examples/modules/physics/conformance/rest.json',
-    'examples/modules/sandbox_rules/content/physics.body/crate.json',
-    'examples/modules/sandbox_rules/content/physics.body/plank.json',
+    `${SANDBOX}/modules/physics/conformance/fall.json`,
+    `${SANDBOX}/modules/physics/conformance/rest.json`,
+    `${SANDBOX}/modules/sandbox_rules/content/physics.body/crate.json`,
+    `${SANDBOX}/modules/sandbox_rules/content/physics.body/plank.json`,
   ]);
   for (const [file, text] of plan.files) writeText(path.join(dir, ...file.split('/')), text);
 
-  assert.deepEqual(errorRules(dir, 'examples'), []);
-  assert.deepEqual(await runContractTraces(dir, 'examples', 'physics', 'node'), []);
+  assert.deepEqual(errorRules(dir, SANDBOX), []);
+  assert.deepEqual(await runContractTraces(dir, SANDBOX, 'physics', 'node'), []);
   const before = readJson(path.join(steps, '2.before.json'));
   const after = readJson(path.join(steps, '2.after.json'));
   assert.ok(before.ok && isObject(before.value) && after.ok);
-  const migrated = await migrateRecord(dir, discover(dir, 'examples', createValidator(dir)), 'physics.body', before.value);
+  const migrated = await migrateRecord(dir, discover(dir, SANDBOX, createValidator(dir)), 'physics.body', before.value);
   assert.ok(jsonEqual(migrated, after.value), `${JSON.stringify(migrated)} is not ${JSON.stringify(after.value)}`);
 });
 
-// Writes the files below examples/modules/<id>/ of dir: a string as the text it is, anything else as JSON.
+// Writes the files below <sandbox root>/modules/<id>/ of dir: a string as the text it is, anything else as JSON.
 function addModule(dir: string, id: string, files: Record<string, string | JsonObject>): void {
   for (const [rel, content] of Object.entries(files)) {
-    const file = path.join(dir, 'examples', 'modules', id, ...rel.split('/'));
+    const file = path.join(dir, ...SANDBOX.split('/'), 'modules', id, ...rel.split('/'));
     if (typeof content === 'string') writeText(file, content);
     else writeJson(file, content);
   }
@@ -221,10 +222,10 @@ function closeEqual(a: unknown, b: unknown): boolean {
 }
 
 test('walkthrough (a) add a feature', async (t) => {
-  const dir = copyToTemp(['schemas', 'examples']);
+  const dir = copyToTemp(['schemas', SANDBOX]);
   addModule(dir, 'health', {
     'module.json': {
-      $schema: '../../../schemas/module.schema.json',
+      $schema: '../../../../../../../../schemas/module.schema.json',
       id: 'health',
       summary: 'Gives bodies hit points: a physics.contact costs one, and at zero health.died is emitted.',
       requires: ['physics'],
@@ -271,13 +272,13 @@ test('walkthrough (a) add a feature', async (t) => {
     'ts/index.ts': HEALTH_TS,
     'python/health.py': HEALTH_PY,
   });
-  editJson(dir, 'examples/games/sandbox/game.json', (game) => {
+  editJson(dir, `${SANDBOX}/games/sandbox/game.json`, (game) => {
     (game.modules as JsonObject).health = {};
   });
-  assert.deepEqual(errorRules(dir, 'examples'), []);
+  assert.deepEqual(errorRules(dir, SANDBOX), []);
 
   const validator = createValidator(dir);
-  const built = buildGame(dir, 'examples', 'sandbox', 'node');
+  const built = buildGame(dir, SANDBOX, 'sandbox', 'node');
   assert.deepEqual(built.problems, []);
   const game = await load(built.bundle!, {
     root: pathToFileURL(dir + path.sep).href,
@@ -297,7 +298,7 @@ test('walkthrough (a) add a feature', async (t) => {
 
   // 300 ticks pass every contact, so this runs health.py's damage and its died events; play.py loads the entries from its working directory, the copy.
   await t.test('python ends where node does', (t) => {
-    const builtPython = buildGame(dir, 'examples', 'sandbox', 'python');
+    const builtPython = buildGame(dir, SANDBOX, 'sandbox', 'python');
     assert.deepEqual(builtPython.problems, []);
     const file = path.join(dir, 'python.bundle.json');
     writeJson(file, builtPython.bundle as unknown as Json);
@@ -326,10 +327,10 @@ export function count(ctx: Ctx): void {
 `;
 
 test('walkthrough (c) remove audio', () => {
-  const dir = copyToTemp(['schemas', 'examples']);
+  const dir = copyToTemp(['schemas', SANDBOX]);
   addModule(dir, 'stats', {
     'module.json': {
-      $schema: '../../../schemas/module.schema.json',
+      $schema: '../../../../../../../../schemas/module.schema.json',
       id: 'stats',
       summary: 'Counts the fixed ticks, and the ones in which the optional audio module is present.',
       optional: ['audio'],
@@ -347,29 +348,29 @@ test('walkthrough (c) remove audio', () => {
     },
     'ts/index.ts': STATS_TS,
   });
-  const editSandbox = (edit: (modules: JsonObject) => void): void => editJson(dir, 'examples/games/sandbox/game.json', (game) => edit(game.modules as JsonObject));
+  const editSandbox = (edit: (modules: JsonObject) => void): void => editJson(dir, `${SANDBOX}/games/sandbox/game.json`, (game) => edit(game.modules as JsonObject));
   editSandbox((modules) => {
     modules.stats = { hosts: ['node'] };
   });
-  const generate = () => writeGenerated(discover(dir, 'examples', createValidator(dir)));
-  assert.deepEqual(generate(), { written: ['examples/modules/stats/types.gen.ts'], problems: [] });
+  const generate = () => writeGenerated(discover(dir, SANDBOX, createValidator(dir)));
+  assert.deepEqual(generate(), { written: [`${SANDBOX}/modules/stats/types.gen.ts`], problems: [] });
 
   // Removing audio changes nothing in stats, which lists it as optional (D35, D60).
-  fs.rmSync(path.join(dir, 'examples', 'modules', 'audio'), { recursive: true });
+  fs.rmSync(path.join(dir, ...SANDBOX.split('/'), 'modules', 'audio'), { recursive: true });
   editSandbox((modules) => {
     delete modules.audio;
   });
 
-  const problems = checkRoot(dir, 'examples', createValidator(dir), { generated: true });
+  const problems = checkRoot(dir, SANDBOX, createValidator(dir), { generated: true });
   assert.deepEqual(problems.filter((p) => p.severity === 'error').map(formatProblem), []);
   assert.deepEqual([...new Set(problems.filter((p) => p.severity === 'warning').map((p) => p.rule))], ['unknown-module']);
   assert.deepEqual(generate(), { written: [], problems: [] });
-  const built = buildGame(dir, 'examples', 'sandbox', 'node');
+  const built = buildGame(dir, SANDBOX, 'sandbox', 'node');
   assert.deepEqual(built.problems, []);
   assert.deepEqual(built.bundle!.modules.find((m) => m.id === 'stats')?.absent, ['audio']);
 
   editSandbox((modules) => {
     delete modules.physics_basic;
   });
-  assert.deepEqual(errorRules(dir, 'examples'), ['no-provider']);
+  assert.deepEqual(errorRules(dir, SANDBOX), ['no-provider']);
 });

@@ -1,0 +1,14 @@
+{
+  "$schema": "../../../../../../../../schemas/game.schema.json",
+  "id": "sandbox",
+  "summary": "Three boxes fall and stack; on the web they are drawn, beep, and a click spawns another.",
+  "hosts": ["node", "python", "web"],
+  "fixedHz": 60,
+  "modules": {
+    "physics_basic": {},
+    "sandbox_rules": {},
+    "physics": { "config": { "gravity": [0, -20, 0] } },
+    "render_boxes": { "hosts": ["web"], "config": { "clickBody": "sandbox_rules/crate" } },
+    "audio": { "hosts": ["web"], "config": { "volume": 0.5 } }
+  }
+}

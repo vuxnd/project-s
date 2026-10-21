@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Body",
+  "description": "A rigid axis-aligned box.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$version", "size", "mass"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "$version": { "const": 1 },
+    "$comment": { "type": "string" },
+    "size": { "$ref": "vec3.schema.json", "description": "Full extents.", "x-unit": "m" },
+    "mass": { "type": "number", "exclusiveMinimum": 0, "x-unit": "kg" }
+  }
+}

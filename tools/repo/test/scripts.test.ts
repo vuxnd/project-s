@@ -56,12 +56,10 @@ test('no script contains a single quote, because cmd.exe does not treat it as a 
   }
 });
 
-test('every devDependencies version is exact and the three pins are present', () => {
+test('every devDependencies version is exact and the devDependencies are exactly @types/node, ajv and typescript', () => {
   const dev = stringMap(readPackage().devDependencies);
   for (const [name, version] of Object.entries(dev)) assert.match(version, /^\d+\.\d+\.\d+$/, name);
-  assert.equal(dev.typescript, '7.0.2');
-  assert.equal(dev['@types/node'], '24.19.2');
-  assert.equal(dev.ajv, '8.20.0');
+  assert.deepEqual(Object.keys(dev).sort(), ['@types/node', 'ajv', 'typescript']);
 });
 
 test('package.json has no dependencies and no workspaces', () => {

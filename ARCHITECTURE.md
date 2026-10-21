@@ -6,7 +6,7 @@ Project S is an engine-neutral game foundation. Games are module folders and JSO
 
 ```text
 schemas/                      module, game, bundle, trace and trace-bundle schemas (C1, C2, C4, C6)
-tools/repo/                   the tool: cli.ts, commands/ (one file per command), lib/, test/ (51 fixture roots), docs.ts
+tools/repo/                   the tool: cli.ts, commands/ (one file per command), lib/, test/ (52 fixture roots), docs.ts
 hosts/js/                     runtime.ts (C5 for every JavaScript host), trace.ts, conformance.ts (Node trace runner)
 hosts/js/web/                 browser host: index.html, host.ts (the loop), serve.ts (dev server)
 hosts/python/                 runtime.py, conformance.py (trace runner), play.py (bundle player), run.ts (finds Python)
@@ -28,7 +28,7 @@ package.json, tsconfig*.json  npm scripts and three exact devDependencies; Node,
 <root>/games/<id>/game.json                         composition (C2)
 ```
 
-A root is a directory with a `modules/` folder and, optionally, `games/`. The checked roots are `.`, `examples` and `hosts/conformance`; a module sees only modules of its own root. `examples` and `hosts/conformance` are the foundation's own test material, named by the npm scripts and the tests: keep them, build the game in `modules/` and `games/`, and to use an example module there, copy its folder, fix the `$schema` paths `npm run check` names and run `npm run gen`. The tool writes bundles and trace bundles under `build/`, which git ignores.
+A root is a directory with a `modules/` folder and, optionally, `games/`. The checked roots are `.`, `examples` and `hosts/conformance`; a module sees only modules of its own root. `examples` and `hosts/conformance` are the foundation's own test material, named by the npm scripts and the tests: keep them. `examples` is checked, built, validated and run for 300 ticks like any root, but no smoke, snapshot or walkthrough test pins the sandbox game's exact behaviour; those run on the frozen copy `tools/repo/test/fixtures/roots/sandbox`. Build the game in `modules/` and `games/`, and to use an example module there, copy its folder, fix the `$schema` paths `npm run check` names and run `npm run gen`. The tool writes bundles and trace bundles under `build/`, which git ignores.
 
 ## Principles
 
@@ -83,7 +83,7 @@ Six systems share ten contracts: the tool (`tools/repo/`) checks and compiles, t
 - Hand-written module code imports only files in its own folder and packages listed in `packages`; its `test` folder may also import `node:` built-ins. `tools/repo/lib/imports.ts` checks this on raw source.
 - `tsconfig.portable.json` keeps the runtime and module `ts` code off DOM and Node APIs; `tsconfig.web.json` keeps web code off Node APIs.
 - Rules the tool does not check: module code keeps no module-level mutable state, never calls `Math.random`, `Date`, `performance` or `crypto` (in Python `random`, `time`, `datetime`, `secrets`), and frame systems emit only discrete events.
-- Limits: isolation is not a security boundary, since a JavaScript host runs every module in one realm and the trace runners, `npm run migrate` and `npm test` run module code and migration steps with the user's rights; the import scan is lexical and reads only `.ts` files; a Python entry is one file, because the runtime loads it by path with no package, so importing a sibling file fails; R9 and R18 run only in debug mode, which the web host does not use, and the Python runner and `play.py` pass no `validate`, so the schema checks of R18 run only on JavaScript code; `x-ref` is checked only in records, not in config, event payloads, params, results or state.
+- Limits: isolation is not a security boundary, since a JavaScript host runs every module in one realm and the trace runners, `npm run migrate` and `npm test` run module code and migration steps with the user's rights; the import scan is lexical and reads only `.ts` files; a Python entry is one file, because the runtime loads it by path with no package, so importing a sibling file fails; R9 and R18 run only in debug mode, which the web host uses, and the schema checks of R18 (d) run only where a validator is passed, which is the Node trace runner and the unit tests of both runtimes; `x-ref` is checked only in records, not in config, event payloads, params, results or state.
 
 ## Data flows
 
@@ -112,15 +112,15 @@ browser event             pointerdown on ctx.host.canvas
 
 ## Extension mechanisms
 
-`tools/repo/test/walkthroughs.test.ts` runs (a), (b), (c) and (e) on a temporary copy of `schemas/` and `examples/`; (d) and (f) need tools that are not installed and stay designed. The walkthroughs, the example cases of `tools/repo/test/smoke.test.ts` and the paths and commands of this file and `README.md` assume today's examples, so doing a change for real in `examples/` also edits them: (a) the 40-tick counts, (b) walkthroughs (b), (c) and (e), (c) walkthrough (c) and the `audio` path in the table, (e) or a new `physics` trace walkthrough (e). A game in `modules/` and `games/` touches none of them.
+`tools/repo/test/walkthroughs.test.ts` runs (a), (b), (c) and (e) on a temporary copy of `schemas/` and `tools/repo/test/fixtures/roots/sandbox`, the frozen copy of the sandbox; (d) and (f) need tools that are not installed and stay designed. The sandbox cases of `tools/repo/test/smoke.test.ts` and the bundle snapshot run on the same copy, so a change in `examples/` breaks none of them. Change the copy only for a compiler or contract change. The paths and commands of this file and `README.md` still assume today's examples, so doing a change for real in `examples/` also edits them; `npm run test:docs` finds the ones it breaks. A game in `modules/` and `games/` touches none of them.
 
 | Change | Files touched | Proof |
 |---|---|---|
-| (a) Add a feature: module `health` gives bodies hit points | new folder in `examples/modules/` (manifest, three schemas, a record, TypeScript and Python entries, `types.gen.ts`); `examples/games/sandbox/game.json`; the bundle snapshot; the 40-tick event counts in `tools/repo/test/smoke.test.ts` | `walkthrough (a) add a feature`: three `health.died` in 300 ticks; Python ends where node does |
-| (b) Replace `physics_basic` with `physics_alt` | new module folder that implements `physics`, with TypeScript and Python entries and `types.gen.ts`; the game's key; the snapshot | `walkthrough (b) replace physics`: no error or warning; the `physics` traces pass on node for both implementations |
-| (c) Remove audio | delete `examples/modules/audio/`; drop it from the game; the snapshot | `walkthrough (c) remove audio`: after adding a module `stats` that lists `audio` as optional, no error and one `[unknown-module]` warning at `stats` |
-| (d) Adopt Godot | the Godot files under Technology integration; a `godot` folder and host entry in each module that runs there; a game that lists `godot`; the snapshot; a CI job | designed only: the probe and contract traces must pass on Godot |
-| (e) Bump `physics.body` to version 2 | migration `2.ts` with `2.before.json` and `2.after.json`; the type schema; two record files and the two `physics` traces, rewritten by `npm run migrate -- --write`; the TypeScript and Python readers and `physics_basic`'s unit test; `types.gen.ts`; the snapshot | `walkthrough (e) bump physics.body`: `[outdated-record]` before, no error after; the before sample migrates to the after sample |
+| (a) Add a feature: module `health` gives bodies hit points | new folder in `examples/modules/` (manifest, three schemas, a record, TypeScript and Python entries, `types.gen.ts`); `examples/games/sandbox/game.json` | `walkthrough (a) add a feature`: three `health.died` in 300 ticks; Python ends where node does |
+| (b) Replace `physics_basic` with `physics_alt` | new module folder that implements `physics`, with TypeScript and Python entries and `types.gen.ts`; the game's key | `walkthrough (b) replace physics`: no error or warning; the `physics` traces pass on node for both implementations |
+| (c) Remove audio | delete `examples/modules/audio/`; drop it from the game | `walkthrough (c) remove audio`: after adding a module `stats` that lists `audio` as optional, no error and one `[unknown-module]` warning at `stats` |
+| (d) Adopt Godot | a host folder for Godot as Technology integration describes; a `godot` folder and host entry in each module that runs there; a game that lists `godot`; a CI job | designed only: the probe and contract traces must pass on Godot |
+| (e) Bump `physics.body` to version 2 | migration `2.ts` with `2.before.json` and `2.after.json`; the type schema; two record files and the two `physics` traces, rewritten by `npm run migrate -- --write`; the TypeScript and Python readers and `physics_basic`'s unit test; `types.gen.ts` | `walkthrough (e) bump physics.body`: `[outdated-record]` before, no error after; the before sample migrates to the after sample |
 | (f) Adopt a build or CI tool | `package.json` and `package-lock.json` (one exact devDependency); the new CI file | designed only: `npm test` unchanged; the new script exits 0 |
 
 - A record type is a schema under `types` plus records in `content/<type id>/`. An event or operation is one manifest entry with its schemas.
@@ -136,20 +136,9 @@ A host provides a reader for the bundle formats it supports, the C5 runtime, its
 | web | `hosts/js/runtime.ts`, `hosts/js/web/index.html`, `hosts/js/web/host.ts`, `hosts/js/web/serve.ts` | `{ canvas, audio }` | Node tests of the loop, the server and the presentation modules with fakes |
 | python, headless | `hosts/python/runtime.py`, `hosts/python/conformance.py`, `hosts/python/play.py`, `hosts/python/run.ts` | `{}` | the same traces and goldens; the smoke comparison with node |
 
-- A, native runtime (the default): the engine gets a C5 runtime in its own language and engine-native contract implementations, proven by the same traces; gameplay modules are written once per host language. The Godot 4.7 host below follows A and is designed, not built (pin 4.7.2-stable).
+- A, native runtime (the default): the engine gets a C5 runtime in its own language and engine-native contract implementations, proven by the same traces; gameplay modules are written once per host language. The Godot 4.7 host follows A, with the C5 runtime and the module code in GDScript, and is designed, not built (pin 4.7.2-stable).
 - B, embedded JavaScript: the engine embeds a JavaScript runtime that runs `hosts/js/runtime.ts` and the TypeScript modules unchanged. Adopt an embedding only when it loads into stock engine binaries and export templates, has released within three months, and passes the probe traces inside the engine.
 - C, out of process: a Node process runs the game and the engine renders over a local socket. Development and tooling only, because consoles and mobile stores will not ship a Node sidecar.
-
-```text
-hosts/godot/host.json                                     pinned version, per-platform URL and SHA-256
-hosts/godot/fetch.ts                                      downloads and verifies the binary
-hosts/godot/sync.ts                                       builds godot bundles and copies them, with module godot/
-                                                          folders, into hosts/godot/project/generated/ (ignored)
-hosts/godot/project/addons/bundle_runtime/game.gd         C5 in GDScript: fixed loop in _physics_process, frame in _process
-hosts/godot/project/addons/bundle_runtime/conformance.gd  runs trace bundles headless
-hosts/godot/test/golden/format-1/                         golden trace bundles
-<root>/modules/<id>/godot/<id>.gd                         module code: init(ctx), one function per system, operations
-```
 
 - Engine-specific work stays in modules' host folders and `ctx.host`: rendering, scenes, input devices, audio, platform services. Records carry engine-neutral parameters.
 - Godot parses every JSON number as a float, so ids are strings; its `Vector3` is 32-bit by default, so traces compare computed floats with `near` and `within`.
@@ -178,22 +167,22 @@ Compatibility is promised only where a consumer can lag behind the code.
 | ajv | 8.20.0 | JSON Schema 2020-12 validation, strict about unknown keywords; Node has no validator. Imported only by `tools/repo/lib/validate.ts` |
 
 - All three are devDependencies at exact versions (`.npmrc` sets `save-exact=true`), locked in `package-lock.json` and installed with `npm ci`. Nothing ships them: no bundle, runtime or module imports a package.
-- `tools/repo/test/scripts.test.ts` fails on a version range, a missing or changed pin, a `dependencies` or `workspaces` field, or a single quote in a script.
+- `tools/repo/test/scripts.test.ts` fails on a version range, an added or removed devDependency, a `dependencies` or `workspaces` field, or a single quote in a script.
 - One root `package.json`, no workspaces, no per-module package files. A module that imports a package lists it in `packages`, which the import scan enforces.
-- Node 24.12 or newer through `devEngines` with `onFail: "error"`; Python 3.11 or newer, standard library only; GitHub actions pinned to commit SHAs. CI runs ubuntu and windows with Node 24 and 26 on Python 3.13, plus one Python 3.11 job.
+- Node 24.12 or newer through `devEngines` with `onFail: "error"`; Python 3.11 or newer, standard library only; GitHub actions pinned to commit SHAs. CI runs ubuntu and windows with Node 24 and 26 on Python 3.13, plus one Python 3.11 job and one ubuntu job on Node 24.12.0, the floor, with Python 3.13.
 
 ## Testing
 
 | Layer | Proves | Where |
 |---|---|---|
-| Fixture roots | each rule except `[game-host]` and `[migration-failed]` fires with its exact id: 51 roots, each with an `expect.json` | `tools/repo/test/fixtures/roots/`, `tools/repo/test/check.test.ts` |
+| Fixture roots | each rule except `[game-host]` and `[migration-failed]` fires with its exact id: 52 roots, each with an `expect.json` | `tools/repo/test/fixtures/roots/`, `tools/repo/test/check.test.ts` |
 | Unit | tool libraries and commands; both runtimes rule by rule; both runners; the web loop, server and presentation modules with fakes; module logic with a fake ctx | `tools/repo/test/`, `hosts/js/test/`, `hosts/js/web/test/`, `hosts/python/`, each example module's `test` folder |
 | Repository check | every manifest, game, schema, record, reference, asset, import, config, trace and generated file of the three roots | `npm run check` |
-| Bundle snapshot | the bundles of every game of `.` and `examples` change only on purpose, accepted with `node --test --test-update-snapshots tools/repo/test/examples.test.ts`; two builds give identical bytes | `tools/repo/test/examples.test.ts` |
+| Bundle snapshot | the bundles of every game of `.` and of the frozen `tools/repo/test/fixtures/roots/sandbox` change only on purpose, accepted with `node --test --test-update-snapshots tools/repo/test/examples.test.ts`; two builds give identical bytes and a valid bundle, also for the games of `examples`, which no snapshot pins | `tools/repo/test/examples.test.ts` |
 | Conformance | node and python pass the eight probe traces of C5 (fixed loop only; the frame loop is unit-tested); each implementation meets its contract (the `physics` traces) on node and python | `npm run test:traces` |
 | Compatibility | every migration sample gives its after sample; each host still passes its format 1 goldens | `tools/repo/test/migrations.test.ts`, the golden folders |
-| Smoke | every game of `.` and `examples` runs 300 ticks in debug mode on each of node and python that it lists, and a game that lists both ends with results equal within 1e-9 | `tools/repo/test/smoke.test.ts` |
-| Walkthroughs | (a), (b), (c) and (e) | `tools/repo/test/walkthroughs.test.ts` |
+| Smoke | every game of `.` and `examples` runs 300 ticks in debug mode on each of node and python that it lists, and a game that lists both ends with results equal within 1e-9; the sandbox cases (stacking, two games in one process, node against python at tick 40) run on `tools/repo/test/fixtures/roots/sandbox` | `tools/repo/test/smoke.test.ts` |
+| Walkthroughs | (a), (b), (c) and (e), on a temporary copy of `schemas/` and the frozen sandbox root | `tools/repo/test/walkthroughs.test.ts` |
 | Types | the Node, portable and web projects type-check | `npm run test:types` |
 | Documents | every inline-code path in this file and `README.md` exists (code blocks are not checked); every `sh` line runs, except `npm ci`, `npm test` and `npm run serve`, which must be valid; the headings and contract labels exist | `tools/repo/docs.ts` |
 
@@ -245,6 +234,6 @@ Compatibility is promised only where a consumer can lag behind the code.
 - Generated types committed and drift-checked with `[gen-stale]`: `tsc` then proves that each implementation whose `operations` object `satisfies Operations` provides every operation of its contract.
 - Synchronous operations plus events, with private state: a query such as a ray cast needs an answer within the tick, and reading another module's stored data would make its storage layout the interface.
 - Events reach each loop once, at its next run: delivery is independent of system order within a step and needs no subscriptions.
-- Web input enters through a module's `web` code and a frame-system event, never through the host: the simulation stays independent of the frame rate without a host-level input mapping.
+- Web input enters through a module's `web` code and a frame-system event, never through the host: the fixed loop never sees frame time and no host-level input mapping exists; the tick that sees an input follows the frame schedule (`hosts/js/web/README.md`, Input to tick).
 - A native runtime per engine by default: Godot 4.7 runs no JavaScript, and GodotJS needs a custom engine build.
 - Ajv imported by one file, as a devDependency: validation runs only in the tool and Node tests, so nothing ships it, and a quiet upstream stays behind one file.
