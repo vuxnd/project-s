@@ -128,6 +128,7 @@ const CASES: [name: string, fields: Record<string, Json>, rule: string, pointer:
   ['a call without equals or near', { expect: [{ at: 1, call: 'api.count' }] }, 'trace-expect', '/expect/0'],
   ['a call with near and no within', { expect: [{ at: 1, call: 'api.count', near: 0 }] }, 'trace-expect', '/expect/0'],
   ['a call with equals and near', { expect: [{ at: 1, call: 'api.count', equals: 0, near: 0, within: 1 }] }, 'trace-expect', '/expect/0'],
+  ['a call with equals and within', { expect: [{ at: 1, call: 'api.count', equals: 0, within: 1 }] }, 'trace-expect', '/expect/0'],
   ['a call without at', { expect: [{ call: 'api.count', equals: 0 }] }, 'trace-expect', '/expect/0'],
   ['a count without count', { expect: [{ by: 1, emitted: 'api.ping' }] }, 'trace-expect', '/expect/0'],
   ['a count with params', { expect: [{ by: 1, emitted: 'api.ping', count: 0, params: {} }] }, 'trace-expect', '/expect/0'],
@@ -183,6 +184,12 @@ test('a trace listing a module that is not in the root gives unknown-module at /
   assert.deepEqual(bundles, []);
   const second = compile(tempRepo(t, files({ modules: ['other', 'ghost'] }, { 'modules/other/module.json': { id: 'other', summary: 'x' } })));
   assert.deepEqual(where(second.problems), [`error unknown-module ${T}#/modules/1`]);
+});
+
+test('a deprecated implementation of the trace is a warning at the trace root and the bundle is still written', (t) => {
+  const { bundles, problems } = compile(tempRepo(t, files({}, { 'modules/impl/module.json': { id: 'impl', summary: 'x', deprecated: 'Use new.', implements: ['api'], hosts: { node: 'ts/index.ts' } } })));
+  assert.deepEqual(where(problems), [`warning deprecated ${T}#`]);
+  assert.equal(bundles.length, 1);
 });
 
 test('a deprecated module of the trace is a warning at its index and the bundle is still written', (t) => {

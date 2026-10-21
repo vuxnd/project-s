@@ -241,3 +241,76 @@ test('a warning alone does not stop the bundle and comes back with it', (t) => {
   assert.deepEqual(where(built.problems), ['warning deprecated games/demo/game.json#/modules/old']);
   assert.deepEqual(built.bundle!.modules.map((m) => m.id), ['old']);
 });
+
+test('every map is sorted whatever the manifest order and the order of the records given, and unselected modules add nothing', (t) => {
+  const object: Json = { $schema: DRAFT, type: 'object', additionalProperties: false };
+  const type = (props: Record<string, Json> = {}): Json => ({
+    $schema: DRAFT, type: 'object', additionalProperties: false, required: ['$version'],
+    properties: { $schema: { type: 'string' }, $version: { const: 1 }, $comment: { type: 'string' }, ...props },
+  });
+  const impl = (id: string, contract: string): Files => ({
+    [`modules/${id}/module.json`]: { id, summary: 'x', implements: [contract], hosts: { node: 'ts/index.ts' } },
+    [`modules/${id}/ts/index.ts`]: 'export {};\n',
+  });
+  const dir = tempRepo(t, {
+    'modules/base/module.json': { id: 'base', summary: 'x', contract: true },
+    'modules/api/module.json': { id: 'api', summary: 'x', contract: true },
+    ...impl('base_impl', 'base'),
+    ...impl('impl', 'api'),
+    'modules/app/module.json': {
+      id: 'app',
+      summary: 'x',
+      requires: ['base', 'api'],
+      types: { zulu: 'schemas/zulu.schema.json', alpha: 'schemas/alpha.schema.json' },
+      events: { zap: 'schemas/object.schema.json', bang: 'schemas/object.schema.json' },
+      operations: {
+        zoom: { params: 'schemas/object.schema.json', result: 'schemas/object.schema.json' },
+        aim: { params: 'schemas/object.schema.json', result: 'schemas/object.schema.json' },
+      },
+      hosts: { node: 'ts/index.ts' },
+    },
+    'modules/app/ts/index.ts': 'export {};\n',
+    'modules/app/schemas/object.schema.json': object,
+    'modules/app/schemas/zulu.schema.json': type(),
+    'modules/app/schemas/alpha.schema.json': type({ model: { type: 'string', 'x-asset': ['glb'] } }),
+    'modules/app/assets/a.glb': 'glTF',
+    'modules/app/assets/b.glb': 'glTF',
+    'modules/app/content/app.alpha/one.json': { $version: 1, model: 'assets/a.glb' },
+    'modules/app/content/app.alpha/two.json': { $version: 1, model: 'assets/a.glb' },
+    'modules/app/content/app.alpha/three.json': { $version: 1, model: 'assets/b.glb' },
+    'modules/app/content/app.zulu/z.json': { $version: 1 },
+    'modules/idle/module.json': {
+      id: 'idle', summary: 'x', types: { thing: 'schemas/thing.schema.json' }, events: { idled: 'schemas/object.schema.json' }, operations: { nap: {} }, hosts: { node: 'ts/index.ts' },
+    },
+    'modules/idle/ts/index.ts': 'export {};\n',
+    'modules/idle/schemas/object.schema.json': object,
+    'modules/idle/schemas/thing.schema.json': type(),
+    'games/demo/game.json': { id: 'demo', summary: 'x', hosts: ['node'], fixedHz: 60, modules: { app: {}, impl: {}, base_impl: {} } },
+  });
+  const validator = createValidator(dir);
+  const index = discover(dir, '.', validator);
+  const loaded = loadRecords(index, validator);
+  assert.deepEqual(loaded.problems, []);
+  const game = index.games.get('demo')!;
+  const built = buildBundle({ index, records: [...loaded.records].reverse(), composition: gameComposition(game), host: 'node', game: 'demo', fixedHz: 60, validator });
+  assert.deepEqual(built.problems, []);
+  const bundle = built.bundle!;
+  const s = bundle.schemas!;
+  assert.deepEqual(
+    [bundle.contracts, bundle.operations, bundle.events, bundle.types, bundle.config, bundle.records, bundle.records['app.alpha'], s.events, s.params, s.results].map((map) => Object.keys(map)),
+    [
+      ['api', 'base'],
+      ['app.aim', 'app.zoom'],
+      ['app.bang', 'app.zap'],
+      ['app.alpha', 'app.zulu'],
+      ['api', 'app', 'base', 'base_impl', 'impl'],
+      ['app.alpha', 'app.zulu'],
+      ['app/one', 'app/three', 'app/two'],
+      ['app.bang', 'app.zap'],
+      ['app.aim', 'app.zoom'],
+      ['app.aim', 'app.zoom'],
+    ],
+  );
+  assert.deepEqual(bundle.assets, ['modules/app/assets/a.glb', 'modules/app/assets/b.glb']);
+  assert.deepEqual([Object.keys(bundle.modules[0]), Object.keys(bundle.schedule), Object.keys(s)], [['id', 'entry', 'sees', 'absent', 'packages'], ['fixed', 'frame'], ['state', 'events', 'params', 'results']]);
+});

@@ -42,6 +42,7 @@ export function run(args: string[], repoRoot: string): number {
   const index = discover(repoRoot, root, validator);
   const game = index.games.get(id);
   if (game === undefined) {
+    for (const problem of sortProblems(index.problems)) console.log(formatProblem(problem));
     console.error(`unknown game: ${id}`);
     return 2;
   }

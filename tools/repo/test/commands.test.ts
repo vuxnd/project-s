@@ -218,6 +218,14 @@ test('build writes build/games/<game>/<host>/bundle.json for root . and the file
   assert.equal(readText(path.join(dir, 'build', 'games', 'demo', 'node', 'bundle.json')), formatJson(parsed.value));
 });
 
+test('build of a game whose game.json discover rejects prints the problem, then unknown game, and exits 2', (t) => {
+  const dir = tempRepo(t, app({ 'games/demo/game.json': { id: 'demo', summary: 'x', hosts: ['node'], fixedHz: 60, modules: { app: {} }, extra: 1 } }));
+  const r = runIn(t, runBuild, dir, 'demo', '--host', 'node', '--root', '.');
+  assert.equal(r.status, 2);
+  assert.match(r.out.join('\n'), /^games\/demo\/game\.json#: .* \[schema\]$/);
+  assert.deepEqual(r.err, ['unknown game: demo']);
+});
+
 test('build fails on a record error of the root even when the game is fine, and writes nothing', (t) => {
   const dir = tempRepo(t, app({
     'modules/kinds/module.json': { id: 'kinds', summary: 'x', types: { item: 'schemas/item.schema.json' } },
