@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Model",
+  "description": "Voxel cells per rig part in the rest pose, written as boxes. Cell grid: integers are cell centres, +Y up, +Z forward, +X the character's left, 1 cell = 1/16 m.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$version", "rig", "parts"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "$version": { "const": 1 },
+    "$comment": { "type": "string" },
+    "rig": { "type": "string", "x-ref": "humanoid.rig" },
+    "parts": {
+      "description": "Boxes by rig part name.",
+      "type": "object",
+      "propertyNames": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,63}$" },
+      "additionalProperties": { "type": "array", "items": { "$ref": "#/$defs/box" }, "minItems": 1 }
+    }
+  },
+  "$defs": {
+    "cell": { "type": "array", "items": { "type": "integer" }, "minItems": 3, "maxItems": 3, "x-unit": "cell" },
+    "box": {
+      "description": "Every cell from from to to, both included. Boxes of one model never overlap.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to", "color"],
+      "properties": {
+        "from": { "$ref": "#/$defs/cell" },
+        "to": { "$ref": "#/$defs/cell" },
+        "color": { "type": "string", "pattern": "^#[0-9a-f]{6}$" }
+      }
+    }
+  }
+}
