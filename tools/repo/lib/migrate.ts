@@ -2,7 +2,7 @@
 import { pathToFileURL } from 'node:url';
 import { discover } from './discover.ts';
 import type { RootIndex } from './discover.ts';
-import { absPath, joinPosix, listFiles, walkFiles } from './fsx.ts';
+import { absPath, isFile, joinPosix, listFiles, walkFiles } from './fsx.ts';
 import { formatJson, isObject, joinPointer, readJson } from './json.ts';
 import type { JsonObject } from './json.ts';
 import { error } from './problems.ts';
@@ -41,6 +41,7 @@ async function migrate(repoRoot: string, index: RootIndex, validator: Validator,
   let current = structuredClone(record);
   for (const step of migrationSteps(index, type).filter((s) => s.to > from && s.to <= target)) {
     try {
+      if (!isFile(absPath(repoRoot, step.file))) throw new Error('does not exist');   // Node's own message prints the absolute path
       const { default: fn } = (await import(pathToFileURL(absPath(repoRoot, step.file)).href)) as { default?: unknown };
       if (typeof fn !== 'function') throw new Error('no default export function');
       const returned: unknown = fn(structuredClone(current));
@@ -51,6 +52,7 @@ async function migrate(repoRoot: string, index: RootIndex, validator: Validator,
         ...(record.$comment === undefined ? {} : { $comment: record.$comment }),
         ...Object.fromEntries(Object.entries(returned).filter(([key]) => !ENVELOPE.includes(key))),
       };
+      formatJson(current);   // throws on undefined, NaN, infinities and functions, which no record file can hold
     } catch (e) {
       throw new Error(`${step.file}: ${message(e)}`);
     }

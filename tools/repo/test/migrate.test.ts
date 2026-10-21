@@ -107,6 +107,15 @@ test('migrateRecord puts $schema, $version and $comment before the body whatever
   assert.equal(JSON.stringify(record), text);
 });
 
+test('migrateRecord keeps the envelope of the input when a step returns only the body, and a step that edits its argument leaves the input alone', async (t) => {
+  const dir = itemRepo(t, { 2: step('  record.tags = [];\n  return record;'), 3: step('  return { label: String(record.name), tags: record.tags };') });
+  const index = discover(dir, '.', createValidator(dir));
+  const record = { $schema: '../../schemas/item.schema.json', $version: 1, $comment: 'kept', name: 'a' };
+  const text = JSON.stringify(record);
+  assert.deepEqual(await migrateRecord(dir, index, 'm.item', record), { $schema: '../../schemas/item.schema.json', $version: 3, $comment: 'kept', label: 'a', tags: [] });
+  assert.equal(JSON.stringify(record), text);
+});
+
 test('migrateRecord applies the steps after the record version up to `to`, and checks the schema only when `to` is the type version', async (t) => {
   const dir = itemRepo(t, { 2: ADD_TAGS, 3: RENAME });
   const index = discover(dir, '.', createValidator(dir));
@@ -122,7 +131,7 @@ const FAILURES: [what: string, steps: Record<number, string>, message: RegExp][]
   ['a second step that throws after the first succeeded', { 2: ADD_TAGS, 3: step("  throw new Error('late');") }, /modules\/m\/migrations\/item\/3\.ts: late/],
   ['a step that returns nothing', { 2: step('  void record;'), 3: RENAME }, /modules\/m\/migrations\/item\/2\.ts: returned a value that is not an object/],
   ['a step without a default export', { 2: 'export function migrate() { return {}; }\n', 3: RENAME }, /modules\/m\/migrations\/item\/2\.ts: no default export function/],
-  ['a step file that is missing', { 3: RENAME }, /modules\/m\/migrations\/item\/2\.ts: Cannot find module/],
+  ['a step file that is missing', { 3: RENAME }, /modules\/m\/migrations\/item\/2\.ts: does not exist$/],
   ['a result that fails the type schema', { 2: ADD_TAGS, 3: BROKEN }, /the result does not match modules\/m\/schemas\/item\.schema\.json: \/label: must be string/],
 ];
 
@@ -195,6 +204,18 @@ test('a failed record in a trace is migration-failed at its pointer, the trace i
   assert.equal(plan.problems[0].message, 'trace/br: the result does not match modules/c/schemas/bad.schema.json: /label: must be string');
 });
 
+test('a step result that is not JSON is migration-failed at the record, and planMigrations still returns', async (t) => {
+  const dir = tempRepo(t, {
+    'modules/m/module.json': { id: 'm', summary: 'x', types: { item: 'schemas/item.schema.json' } },
+    'modules/m/schemas/item.schema.json': { ...recordType(2, { label: { type: 'string' }, note: { type: 'string' } }), required: ['$version', 'label'] },
+    'modules/m/migrations/item/2.ts': step('  const { name, old, ...rest } = record;\n  return { ...rest, label: name, note: old };'),   // note is undefined: the record has no old
+    'modules/m/content/m.item/a.json': { $version: 1, name: 'a' },
+  });
+  const plan = await planMigrations(dir, '.', createValidator(dir));
+  assert.deepEqual([plan.changes, plan.files.size], [[], 0]);
+  assert.deepEqual(plan.problems.map((p) => [p.rule, p.file, p.pointer]), [['migration-failed', 'modules/m/content/m.item/a.json', '']]);
+});
+
 test('records that are current, newer, of a type without a version or without a type, and files that are no records give no change', async (t) => {
   const dir = tempRepo(t, {
     'modules/m/module.json': { id: 'm', summary: 'x', types: { item: 'schemas/item.schema.json', plain: 'schemas/plain.schema.json' } },
@@ -245,7 +266,7 @@ test('migrate usage errors exit 2 with a message on stderr: no root, unknown opt
     assert.equal(r.stdout, '', args.join(' '));
     assert.notEqual(r.stderr, '', args.join(' '));
   }
-  for (const root of ['nowhere', '../x', '/etc', 'C:/x', 'a\\b']) {
+  for (const root of ['nowhere', '../x', 'tools/..', '/etc', 'C:/x', 'a\\b']) {
     assert.deepEqual(cli('--root', root), { status: 2, stdout: '', stderr: `no such root: ${root}\n` }, root);
   }
 });
@@ -279,4 +300,30 @@ test('migrate --write writes nothing when a record fails, not even the files tha
     out: [problem, `${ONE}: shapes.box 1 -> 2`, `${TRACE}: shapes.box 1 -> 2`, 'migrate: 2 files would change; run npm run migrate -- --write'],
     err: [],
   });
+});
+
+test('migrate over several roots counts files, not records, and prints the problems of every root sorted', async (t) => {
+  const contract = (root: string, migration: string): Record<string, Json | string> => ({
+    [`${root}/modules/c/module.json`]: { id: 'c', summary: 'x', contract: true, types: { item: 'schemas/item.schema.json' } },
+    [`${root}/modules/c/schemas/item.schema.json`]: recordType(2, { label: { type: 'string' } }),
+    [`${root}/modules/c/migrations/item/2.ts`]: migration,
+  });
+  const dir = tempRepo(t, {
+    ...contract('two', RENAME),
+    'two/modules/c/conformance/t.json': { records: { 'c.item': { a: { $version: 1, name: 'a' }, b: { $version: 1, name: 'b' } } } },
+    ...contract('one', RENAME),
+    'one/modules/c/content/c.item/x.json': { $version: 1, name: 'x' },
+    ...contract('q', step("  throw new Error('q');")),
+    'q/modules/c/content/c.item/x.json': { $version: 1, name: 'x' },
+    ...contract('p', step("  throw new Error('p');")),
+    'p/modules/c/content/c.item/x.json': { $version: 1, name: 'x' },
+  });
+  assert.deepEqual(await runMigrate(t, dir, '--root', 'two', '--root', 'one'), {
+    status: 0,
+    out: ['two/modules/c/conformance/t.json: c.item 1 -> 2', 'two/modules/c/conformance/t.json: c.item 1 -> 2', 'one/modules/c/content/c.item/x.json: c.item 1 -> 2', 'migrate: 2 files would change; run npm run migrate -- --write'],
+    err: [],
+  });
+  const failed = await runMigrate(t, dir, '--root', 'q', '--root', 'p');
+  assert.deepEqual([failed.status, failed.out.map((line) => line.replace(/: .* \[/, ' ['))], [1, ['p/modules/c/content/c.item/x.json# [migration-failed]', 'q/modules/c/content/c.item/x.json# [migration-failed]', 'migrate: 0 files would change; run npm run migrate -- --write']]);
+  assert.deepEqual(await runMigrate(t, dir, '--write', '--root', 'two', '--root', 'one'), { status: 0, out: ['migrate: rewrote 2 files'], err: [] });
 });
