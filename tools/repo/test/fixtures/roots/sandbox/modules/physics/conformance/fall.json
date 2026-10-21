@@ -1,0 +1,19 @@
+{
+  "$schema": "../../../../../../../../../schemas/trace.schema.json",
+  "summary": "A box dropped from 100 m falls about 5 m in one second and touches nothing.",
+  "fixedHz": 60,
+  "ticks": 60,
+  "config": { "physics": { "gravity": [0, -10, 0] } },
+  "records": {
+    "physics.body": {
+      "ball": { "$version": 1, "size": [1, 1, 1], "mass": 1 }
+    }
+  },
+  "inputs": [
+    { "at": 0, "event": "physics.spawn", "payload": { "id": "ball", "body": "trace/ball", "position": [0, 100, 0] } }
+  ],
+  "expect": [
+    { "at": 60, "call": "physics.position", "params": { "id": "ball" }, "pointer": "/1", "near": 95, "within": 0.2 },
+    { "by": 60, "emitted": "physics.contact", "count": 0 }
+  ]
+}

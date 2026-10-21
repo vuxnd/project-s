@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Cue",
+  "description": "A tone played each time an event is delivered.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$version", "event", "frequency", "duration"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "$version": { "const": 1 },
+    "$comment": { "type": "string" },
+    "event": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,63}\\.[a-z][a-z0-9_]{0,63}$", "description": "Qualified id of the event that plays the tone." },
+    "frequency": { "type": "number", "exclusiveMinimum": 0, "x-unit": "Hz" },
+    "duration": { "type": "number", "exclusiveMinimum": 0, "x-unit": "s" }
+  }
+}

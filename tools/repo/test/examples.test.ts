@@ -1,4 +1,4 @@
-// Snapshot tests: the bundle of every game of the repository and of the examples root, for each host the game lists (plan.md 4.18).
+// Bundle tests: every game of the repository, of the examples root and of the frozen sandbox root builds the same bytes twice and validates; the repository and the sandbox root are also pinned by snapshot (plan.md 4.18).
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import { test } from 'node:test';
@@ -12,6 +12,7 @@ import { createValidator } from '../lib/validate.ts';
 
 const repoRoot = path.resolve(import.meta.dirname, '..', '..', '..');
 const validator = createValidator(repoRoot);
+const SNAPSHOT_ROOTS = ['.', 'tools/repo/test/fixtures/roots/sandbox'];
 
 // Builds the bundle of one game for one host from the files, with nothing carried over from an earlier build.
 function build(root: string, game: string, host: string) {
@@ -23,7 +24,7 @@ function build(root: string, game: string, host: string) {
   return built.bundle;
 }
 
-for (const root of ['.', 'examples']) {
+for (const root of [...SNAPSHOT_ROOTS, 'examples']) {
   for (const game of discover(repoRoot, root, validator).games.values()) {
     for (const host of game.hosts) {
       test(`bundle ${root} ${game.id} ${host}`, (t) => {
@@ -31,7 +32,7 @@ for (const root of ['.', 'examples']) {
         const text = formatJson(bundle as unknown as Json);
         assert.equal(formatJson(build(root, game.id, host) as unknown as Json), text);
         assert.deepEqual(validator.validate('schemas/bundle.schema.json', bundle, bundlePath(root, game.id, host)), []);
-        t.assert.snapshot(text, { serializers: [String] });   // the JSON as lines, so a review sees which line changed
+        if (SNAPSHOT_ROOTS.includes(root)) t.assert.snapshot(text, { serializers: [String] });   // the JSON as lines, so a review sees which line changed
       });
     }
   }

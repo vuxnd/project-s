@@ -17,6 +17,8 @@ The address names the bundle: `?root=<root>&game=<game>` loads `/build/<root>/ga
 
 Each animation frame adds the time since the last one (at most 0.25 s) to an accumulator, runs one `game.tick()` for every `1 / fixedHz` in it (at most 8 per frame; a larger backlog is dropped), then runs `game.frame(dt, alpha)` once. `alpha` is the leftover fraction of a tick. The first frame only draws. The loop stops at the first error that module code throws and shows its message.
 
+The host loads the bundle in debug mode (`debug: true`). R9: a frame system's operation calls may not change the provider's state. R18: state, event payloads, operation params and results must be JSON-clean, and results and payloads reach modules as frozen copies. Schema validation (R18 d) does not run in the browser: no validator is passed, because Ajv is not served.
+
 ## `ctx.host`
 
 `ctx.host` is `{ canvas, audio }`: the `<canvas id="view">`, sized to its client size at load, and an `AudioContext` that the first `pointerdown` or `keydown` resumes. On node and python `ctx.host` is `{}`.
@@ -24,6 +26,10 @@ Each animation frame adds the time since the last one (at most 0.25 s) to an acc
 ## Input
 
 Input enters through `web/` modules, never through `host.ts`, which calls `game.tick()` without inputs. A module's `init` attaches listeners to `ctx.host.canvas` and queues each input in `ctx.state`. A frame system emits the queued inputs as events of a gameplay module, one event per input, and clears the queue; fixed systems read the events in the next tick. Frame systems emit only discrete events, never one per frame run. `examples/modules/render_boxes/web/index.ts` is the example.
+
+### Input to tick
+
+An input arrives between two animation frames and the module's listener queues it in module state. The next frame first runs every tick that is due (0 to 8), then the frame run, where the frame system emits the queued input as an event. Fixed systems read that event in the first tick of a later frame. So for the same input time, the tick number at which the simulation sees the input depends on how many ticks each frame runs, which the frame schedule decides. Replay, rollback and latency-sensitive controls need inputs stamped with a tick by the host; that is not built. `test/host.test.ts` pins it: the same input is seen in tick 1 with frames every 1/60 s and in tick 2 with frames every 2/60 s.
 
 ## Dev server
 

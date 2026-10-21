@@ -1,4 +1,4 @@
-// Smoke tests: every game of the repository and of the examples root runs 300 ticks on Node and on Python, and the two results agree (plan.md 4.18).
+// Smoke tests: every game of the repository and of the examples root runs 300 ticks on Node and on Python, and the two results agree; the frozen sandbox root pins the exact behaviour (plan.md 4.18).
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -20,6 +20,7 @@ const repoRoot = path.resolve(import.meta.dirname, '..', '..', '..');
 const validator = createValidator(repoRoot);
 const TICKS = 300;
 const HOSTS = ['node', 'python'];
+const SANDBOX = 'tools/repo/test/fixtures/roots/sandbox';
 
 interface Result { snapshot: Record<string, unknown>; events: Record<string, number> }
 
@@ -101,8 +102,8 @@ for (const root of ['.', 'examples']) {
   }
 }
 
-test('smoke examples sandbox: the plank lies on the ground, crate_a on the plank and crate_b on crate_a, with three contacts', async () => {
-  const { game, result } = await playNode(build('examples', 'sandbox', 'node'));
+test('smoke sandbox fixture root: the plank lies on the ground, crate_a on the plank and crate_b on crate_a, with three contacts', async () => {
+  const { game, result } = await playNode(build(SANDBOX, 'sandbox', 'node'));
   const bodies = game.call('physics.bodies') as { id: string; position: number[] }[];
   assert.deepEqual(bodies.map((body) => body.id), ['crate_a', 'crate_b', 'plank']);
   for (const [body, y] of [['plank', 0.25], ['crate_a', 1.0], ['crate_b', 2.0]] as const) {
@@ -112,8 +113,8 @@ test('smoke examples sandbox: the plank lies on the ground, crate_a on the plank
   assert.equal(result.events['physics.contact'], 3);
 });
 
-test('smoke examples sandbox: two games loaded in one process, ticked in turn, each end as the single run does', async () => {
-  const bundle = build('examples', 'sandbox', 'node');
+test('smoke sandbox fixture root: two games loaded in one process, ticked in turn, each end as the single run does', async () => {
+  const bundle = build(SANDBOX, 'sandbox', 'node');
   const single = (await playNode(bundle)).result.snapshot;
   const a = await load(bundle, options);
   const b = await load(bundle, options);
@@ -126,10 +127,10 @@ test('smoke examples sandbox: two games loaded in one process, ticked in turn, e
 });
 
 // At tick 300 every body rests at a height the collision rule sets exactly, so that comparison cannot see how the bodies moved; at tick 40 the plank rests and both crates are still falling.
-test('smoke examples sandbox: node and python agree after 40 ticks, while the crates fall', async (t) => {
-  const python = playPython(build('examples', 'sandbox', 'python'), 40);
+test('smoke sandbox fixture root: node and python agree after 40 ticks, while the crates fall', async (t) => {
+  const python = playPython(build(SANDBOX, 'sandbox', 'python'), 40);
   if (python === null) return t.skip('python not found');
-  const { result } = await playNode(build('examples', 'sandbox', 'node'), 40);
+  const { result } = await playNode(build(SANDBOX, 'sandbox', 'node'), 40);
   assert.deepEqual(result.events, { 'physics.spawn': 3, 'physics.contact': 1 });
   assert.ok(closeEqual(result, python), `node and python differ:\n${JSON.stringify(result)}\n${JSON.stringify(python)}`);
 });

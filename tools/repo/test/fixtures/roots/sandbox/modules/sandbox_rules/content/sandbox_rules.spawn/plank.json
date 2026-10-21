@@ -1,0 +1,6 @@
+{
+  "$schema": "../../schemas/spawn.schema.json",
+  "$version": 1,
+  "body": "sandbox_rules/plank",
+  "position": [0, 3.25, 0]
+}

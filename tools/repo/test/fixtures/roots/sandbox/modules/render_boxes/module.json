@@ -1,0 +1,10 @@
+{
+  "$schema": "../../../../../../../../schemas/module.schema.json",
+  "id": "render_boxes",
+  "summary": "Draws every physics body as a rectangle on the canvas and turns each click on it into one physics.spawn.",
+  "requires": ["physics"],
+  "state": "schemas/state.schema.json",
+  "config": { "schema": "schemas/config.schema.json", "defaults": { "scale": 40 } },
+  "systems": [{ "name": "draw", "loop": "frame" }],
+  "hosts": { "web": "web/index.ts" }
+}

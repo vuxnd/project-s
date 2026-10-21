@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "State",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["pending", "clicks"],
+  "properties": {
+    "pending": {
+      "description": "Clicks the draw system has not turned into a physics.spawn yet, as canvas pixels [x, y] from the top left.",
+      "type": "array",
+      "items": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 }
+    },
+    "clicks": { "type": "integer", "description": "Clicks turned into spawns so far; names the next body click_<clicks + 1>." }
+  }
+}

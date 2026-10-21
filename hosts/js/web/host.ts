@@ -69,7 +69,7 @@ export async function start(env: WebEnv): Promise<Game> {
     }
     const bundle = fetched as Bundle;
     if (bundle.host !== 'web') throw new Error(`bundle host ${bundle.host}; this host is web`);
-    const game = await load(bundle, { root: '/', host: { canvas: env.canvas, audio: env.audio }, importer: env.importer });
+    const game = await load(bundle, { root: '/', host: { canvas: env.canvas, audio: env.audio }, importer: env.importer, debug: true });
     const clock: Clock = { last: null, acc: 0 };
     const frame = (now: number): void => {
       try {
