@@ -1,0 +1,12 @@
+{
+  "$schema": "../../../schemas/game.schema.json",
+  "id": "sandbox",
+  "summary": "Boxes under gravity on a ground plane, driven by the physics contract.",
+  "hosts": ["node", "python"],
+  "fixedHz": 60,
+  "modules": {
+    "physics_basic": {},
+    "sandbox_rules": {},
+    "physics": { "config": { "gravity": [0, -20, 0] } }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Centre of the body, or null when it does not exist.",
+  "type": ["array", "null"],
+  "items": { "type": "number" },
+  "minItems": 3,
+  "maxItems": 3,
+  "x-unit": "m"
+}
