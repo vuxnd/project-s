@@ -1,17 +1,21 @@
 // Walkthroughs of ARCHITECTURE.md as tests: each applies a change to a temporary copy of schemas/ and examples/ and checks the result (plan.md 4.18).
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { after, test } from 'node:test';
+import { pathToFileURL } from 'node:url';
 import { runTraceBundle } from '../../../hosts/js/conformance.ts';
+import { load } from '../../../hosts/js/runtime.ts';
 import { buildBundle } from '../lib/bundle.ts';
 import { checkRoot } from '../lib/check.ts';
 import { gameComposition } from '../lib/composition.ts';
 import { loadRecords } from '../lib/content.ts';
 import { discover } from '../lib/discover.ts';
+import { writeGenerated } from '../lib/gen.ts';
 import { isObject, jsonEqual, readJson, readText, writeJson, writeText } from '../lib/json.ts';
-import type { JsonObject } from '../lib/json.ts';
+import type { Json, JsonObject } from '../lib/json.ts';
 import { migrateRecord, planMigrations } from '../lib/migrate.ts';
 import { formatProblem } from '../lib/problems.ts';
 import { compileTraces, listTraces } from '../lib/traces.ts';
@@ -152,4 +156,220 @@ test('walkthrough (e) bump physics.body', async () => {
   assert.ok(before.ok && isObject(before.value) && after.ok);
   const migrated = await migrateRecord(dir, discover(dir, 'examples', createValidator(dir)), 'physics.body', before.value);
   assert.ok(jsonEqual(migrated, after.value), `${JSON.stringify(migrated)} is not ${JSON.stringify(after.value)}`);
+});
+
+// Writes the files below examples/modules/<id>/ of dir: a string as the text it is, anything else as JSON.
+function addModule(dir: string, id: string, files: Record<string, string | JsonObject>): void {
+  for (const [rel, content] of Object.entries(files)) {
+    const file = path.join(dir, 'examples', 'modules', id, ...rel.split('/'));
+    if (typeof content === 'string') writeText(file, content);
+    else writeJson(file, content);
+  }
+}
+
+const DRAFT = 'https://json-schema.org/draft/2020-12/schema';
+const TICKS = 300;
+
+// health: a body has the hp of the health/default record; each physics.contact costs it one, and at zero it has died (health.died). sandbox lists python too, so python/health.py repeats the algorithm (D33).
+const HEALTH_TS = `\
+// health on JavaScript hosts: a physics.contact costs its body one hit point, and at zero the body has died.
+import type { Ctx, Profile, State, physics } from '../types.gen.ts';
+
+export function init(): State {
+  return { hp: {} };
+}
+
+export function damage(ctx: Ctx): void {
+  const start = ctx.records<Profile>('health.profile')['health/default'].hp;
+  for (const contact of ctx.events<physics.ContactEvent>('physics.contact')) {
+    const left = (ctx.state.hp[contact.id] ?? start) - 1;
+    ctx.state.hp[contact.id] = left;
+    if (left === 0) ctx.emit('health.died', { id: contact.id });
+  }
+}
+`;
+const HEALTH_PY = `\
+"""health on Python hosts: hit points that physics.contact events use up."""
+from typing import Any
+
+
+def init(ctx: Any) -> dict[str, Any]:
+    """Return the initial state: no hit points recorded yet."""
+    return {'hp': {}}
+
+
+def damage(ctx: Any) -> None:
+    """Take one hit point for each physics.contact; emit health.died at zero."""
+    start = ctx.records('health.profile')['health/default']['hp']
+    hp = ctx.state['hp']
+    for contact in ctx.events('physics.contact'):
+        left = hp.get(contact['id'], start) - 1
+        hp[contact['id']] = left
+        if left == 0:
+            ctx.emit('health.died', {'id': contact['id']})
+`;
+
+// Like jsonEqual, but two numbers are equal when they differ by at most 1e-9.
+function closeEqual(a: unknown, b: unknown): boolean {
+  if (typeof a === 'number' && typeof b === 'number') return Math.abs(a - b) <= 1e-9;
+  if (Array.isArray(a) && Array.isArray(b)) return a.length === b.length && a.every((item, i) => closeEqual(item, b[i]));
+  if (isObject(a) && isObject(b)) {
+    const keys = Object.keys(a);
+    return keys.length === Object.keys(b).length && keys.every((key) => Object.hasOwn(b, key) && closeEqual(a[key], b[key]));
+  }
+  return jsonEqual(a, b);
+}
+
+test('walkthrough (a) add a feature', async (t) => {
+  const dir = copyToTemp(['schemas', 'examples']);
+  addModule(dir, 'health', {
+    'module.json': {
+      $schema: '../../../schemas/module.schema.json',
+      id: 'health',
+      summary: 'Gives bodies hit points: a physics.contact costs one, and at zero health.died is emitted.',
+      requires: ['physics'],
+      types: { profile: 'schemas/profile.schema.json' },
+      events: { died: 'schemas/died.schema.json' },
+      state: 'schemas/state.schema.json',
+      systems: [{ name: 'damage', loop: 'fixed', after: ['physics'] }],
+      hosts: { node: 'ts/index.ts', web: 'ts/index.ts', python: 'python/health.py' },
+    },
+    'schemas/profile.schema.json': {
+      $schema: DRAFT,
+      title: 'Profile',
+      description: 'The hit points a body starts with.',
+      type: 'object',
+      additionalProperties: false,
+      required: ['$version', 'hp'],
+      properties: {
+        $schema: { type: 'string' },
+        $version: { const: 1 },
+        $comment: { type: 'string' },
+        hp: { type: 'integer', minimum: 1 },
+      },
+    },
+    'schemas/died.schema.json': {
+      $schema: DRAFT,
+      title: 'Died',
+      description: 'A body lost its last hit point.',
+      type: 'object',
+      additionalProperties: false,
+      required: ['id'],
+      properties: { id: { type: 'string' } },
+    },
+    'schemas/state.schema.json': {
+      $schema: DRAFT,
+      title: 'State',
+      type: 'object',
+      additionalProperties: false,
+      required: ['hp'],
+      properties: {
+        hp: { description: 'Hit points left per body id, for the bodies that had a contact.', type: 'object', propertyNames: { type: 'string' }, additionalProperties: { type: 'integer' } },
+      },
+    },
+    'content/health.profile/default.json': { $schema: '../../schemas/profile.schema.json', $version: 1, hp: 1 },
+    'ts/index.ts': HEALTH_TS,
+    'python/health.py': HEALTH_PY,
+  });
+  editJson(dir, 'examples/games/sandbox/game.json', (game) => {
+    (game.modules as JsonObject).health = {};
+  });
+  assert.deepEqual(errorRules(dir, 'examples'), []);
+
+  const validator = createValidator(dir);
+  const built = buildGame(dir, 'examples', 'sandbox', 'node');
+  assert.deepEqual(built.problems, []);
+  const game = await load(built.bundle!, {
+    root: pathToFileURL(dir + path.sep).href,
+    debug: true,
+    validate: (schema, value) => {
+      const errors = validator.errors(schema, value);
+      return errors.length === 0 ? null : errors.join('; ');
+    },
+    host: {},
+  });
+  const events: Record<string, number> = {};
+  for (let i = 0; i < TICKS; i++) {
+    for (const { event } of game.tick()) events[event] = (events[event] ?? 0) + 1;
+  }
+  assert.equal(events['health.died'], 3);
+  const nodeResult = { snapshot: game.snapshot(), events };
+
+  // 300 ticks pass every contact, so this runs health.py's damage and its died events; play.py loads the entries from its working directory, the copy.
+  await t.test('python ends where node does', (t) => {
+    const builtPython = buildGame(dir, 'examples', 'sandbox', 'python');
+    assert.deepEqual(builtPython.problems, []);
+    const file = path.join(dir, 'python.bundle.json');
+    writeJson(file, builtPython.bundle as unknown as Json);
+    const run = spawnSync(process.execPath, [path.join(repoRoot, 'hosts', 'python', 'run.ts'), path.join(repoRoot, 'hosts', 'python', 'play.py'), file, String(TICKS)], { cwd: dir, encoding: 'utf8' });
+    assert.equal(run.status, 0, `${run.stdout}${run.stderr}`);
+    const last = run.stdout.split(/\r?\n/).filter((line) => line !== '').at(-1) ?? '';
+    if (last === 'SKIPPED python (not found)') return t.skip('python not found');
+    const pythonResult = JSON.parse(last);
+    assert.ok(closeEqual(nodeResult, pythonResult), `node and python differ:\n${JSON.stringify(nodeResult)}\n${last}`);
+  });
+});
+
+// stats counts fixed ticks, and the ones in which the optional audio module is present.
+const STATS_TS = `\
+// stats on JavaScript hosts: counts the fixed ticks, and the ones in which the optional audio module is present.
+import type { Ctx, State } from '../types.gen.ts';
+
+export function init(): State {
+  return { ticks: 0, withAudio: 0 };
+}
+
+export function count(ctx: Ctx): void {
+  ctx.state.ticks += 1;
+  if (ctx.has('audio')) ctx.state.withAudio += 1;
+}
+`;
+
+test('walkthrough (c) remove audio', () => {
+  const dir = copyToTemp(['schemas', 'examples']);
+  addModule(dir, 'stats', {
+    'module.json': {
+      $schema: '../../../schemas/module.schema.json',
+      id: 'stats',
+      summary: 'Counts the fixed ticks, and the ones in which the optional audio module is present.',
+      optional: ['audio'],
+      state: 'schemas/state.schema.json',
+      systems: [{ name: 'count', loop: 'fixed', after: ['audio'] }],
+      hosts: { node: 'ts/index.ts' },
+    },
+    'schemas/state.schema.json': {
+      $schema: DRAFT,
+      title: 'State',
+      type: 'object',
+      additionalProperties: false,
+      required: ['ticks', 'withAudio'],
+      properties: { ticks: { type: 'integer' }, withAudio: { type: 'integer' } },
+    },
+    'ts/index.ts': STATS_TS,
+  });
+  const editSandbox = (edit: (modules: JsonObject) => void): void => editJson(dir, 'examples/games/sandbox/game.json', (game) => edit(game.modules as JsonObject));
+  editSandbox((modules) => {
+    modules.stats = { hosts: ['node'] };
+  });
+  const generate = () => writeGenerated(discover(dir, 'examples', createValidator(dir)));
+  assert.deepEqual(generate(), { written: ['examples/modules/stats/types.gen.ts'], problems: [] });
+
+  // Removing audio changes nothing in stats, which lists it as optional (D35, D60).
+  fs.rmSync(path.join(dir, 'examples', 'modules', 'audio'), { recursive: true });
+  editSandbox((modules) => {
+    delete modules.audio;
+  });
+
+  const problems = checkRoot(dir, 'examples', createValidator(dir), { generated: true });
+  assert.deepEqual(problems.filter((p) => p.severity === 'error').map(formatProblem), []);
+  assert.deepEqual([...new Set(problems.filter((p) => p.severity === 'warning').map((p) => p.rule))], ['unknown-module']);
+  assert.deepEqual(generate(), { written: [], problems: [] });
+  const built = buildGame(dir, 'examples', 'sandbox', 'node');
+  assert.deepEqual(built.problems, []);
+  assert.deepEqual(built.bundle!.modules.find((m) => m.id === 'stats')?.absent, ['audio']);
+
+  editSandbox((modules) => {
+    delete modules.physics_basic;
+  });
+  assert.deepEqual(errorRules(dir, 'examples'), ['no-provider']);
 });

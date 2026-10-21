@@ -1,0 +1,10 @@
+{
+  "$schema": "../../../schemas/module.schema.json",
+  "id": "audio",
+  "summary": "Plays a short tone for every physics.contact, as its audio.cue record describes.",
+  "requires": ["physics"],
+  "types": { "cue": "schemas/cue.schema.json" },
+  "config": { "schema": "schemas/config.schema.json", "defaults": { "volume": 0.8 } },
+  "systems": [{ "name": "play", "loop": "frame" }],
+  "hosts": { "web": "web/index.ts" }
+}
