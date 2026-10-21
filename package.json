@@ -7,7 +7,7 @@
     "runtime": { "name": "node", "version": ">=24.12.0", "onFail": "error" }
   },
   "scripts": {
-    "test": "npm run check && npm run test:types && npm run test:unit && npm run test:traces",
+    "test": "npm run check && npm run test:types && npm run test:unit && npm run test:traces && npm run test:docs",
     "check": "node tools/repo/cli.ts check --root . --root examples --root hosts/conformance",
     "gen": "node tools/repo/cli.ts gen --root . --root examples --root hosts/conformance",
     "build": "node tools/repo/cli.ts build",
@@ -15,7 +15,8 @@
     "serve": "node --disable-warning=ExperimentalWarning hosts/js/web/serve.ts",
     "test:types": "tsc -p tsconfig.json && tsc -p tsconfig.portable.json && tsc -p tsconfig.web.json",
     "test:unit": "node --test \"tools/**/*.test.ts\" \"hosts/**/*.test.ts\" \"modules/**/*.test.ts\" \"examples/**/*.test.ts\" && node hosts/python/run.ts -m unittest discover -s hosts/python -p \"test_*.py\"",
-    "test:traces": "node tools/repo/cli.ts traces --host node --host python --root . --root examples --root hosts/conformance && node hosts/js/conformance.ts build/traces/node build/examples/traces/node build/hosts/conformance/traces/node hosts/js/test/golden/format-1 && node hosts/python/run.ts hosts/python/conformance.py build/traces/python build/examples/traces/python build/hosts/conformance/traces/python hosts/python/test/golden/format-1"
+    "test:traces": "node tools/repo/cli.ts traces --host node --host python --root . --root examples --root hosts/conformance && node hosts/js/conformance.ts build/traces/node build/examples/traces/node build/hosts/conformance/traces/node hosts/js/test/golden/format-1 && node hosts/python/run.ts hosts/python/conformance.py build/traces/python build/examples/traces/python build/hosts/conformance/traces/python hosts/python/test/golden/format-1",
+    "test:docs": "node tools/repo/docs.ts ARCHITECTURE.md README.md"
   },
   "devDependencies": {
     "@types/node": "24.19.2",
