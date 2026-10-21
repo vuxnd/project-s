@@ -1,7 +1,8 @@
-// Draws voxel boxes as flat-shaded unit cubes in an orthographic view, with a depth buffer.
+// Draws voxel boxes as flat-shaded unit cubes in an orthographic view, with a depth buffer; a box may be moved as a rigid body.
 // Uses no Node or DOM API, so a browser page can import it unchanged.
 export type Vec3 = [number, number, number];
-export interface Box { from: Vec3; to: Vec3; color: string }   // every cell from `from` to `to`, both included
+export interface Transform { rotation: [Vec3, Vec3, Vec3]; translation: Vec3 }   // rows of the rotation; a point p moves to rotation · p + translation
+export interface Box { from: Vec3; to: Vec3; color: string; transform?: Transform }   // every cell from `from` to `to`, both included, moved by `transform`
 export interface View { yaw: number; pitch: number }          // degrees; yaw 0 looks from +Z (the front), yaw 90 from +X, pitch from above
 export interface Image { width: number; height: number; data: Uint8Array }   // RGBA, rows top first
 
@@ -28,6 +29,8 @@ const FACES: { normal: Vec3; u: Vec3; v: Vec3; shade: number }[] = [
 
 const dot = (a: Vec3, b: Vec3): number => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 const key = (x: number, y: number, z: number): string => `${x},${y},${z}`;
+const turn = (t: Transform | undefined, v: Vec3): Vec3 => (t === undefined ? v : t.rotation.map((row) => dot(row, v)) as Vec3);
+const move = (t: Transform | undefined, p: Vec3): Vec3 => (t === undefined ? p : turn(t, p).map((x, i) => x + t.translation[i]) as Vec3);
 
 export function parseColor(hex: string): Vec3 {
   return [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)) as Vec3;
@@ -75,9 +78,15 @@ export function extent(filled: Map<string, string>): { centre: Vec3; diagonal: n
 // without it, the image is cropped to the projected model.
 export function render(boxes: Box[], view: View, options: { scale?: number; background?: string; centre?: Vec3 } = {}): Image {
   const scale = options.scale ?? SCALE;
-  const filled = cells(boxes);
+  const filled = cells(boxes);   // at rest: the size of a centred image does not change as boxes move
   const { d, r, u } = axes(view);
-  const centres = [...filled.keys()].map((k) => k.split(',').map(Number) as Vec3);
+  // Boxes with one transform move together and hide the faces they share; a face against a box of another transform is drawn.
+  const groups = new Map<Transform | undefined, Box[]>();
+  for (const box of boxes) groups.set(box.transform, [...(groups.get(box.transform) ?? []), box]);
+  const centres = [...groups].flatMap(([transform, list]) => {
+    const own = cells(list);
+    return [...own.keys()].map((k) => ({ c: k.split(',').map(Number) as Vec3, color: own.get(k)!, own, transform }));
+  });
 
   let left: number, top: number, width: number, height: number;
   if (options.centre !== undefined) {
@@ -87,9 +96,10 @@ export function render(boxes: Box[], view: View, options: { scale?: number; back
     top = dot(options.centre, u) + side / 2 / scale;
   } else {
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-    for (const c of centres) {
+    for (const { c, transform } of centres) {
       for (const corner of [-0.5, 0.5].flatMap((x) => [-0.5, 0.5].flatMap((y) => [-0.5, 0.5].map((z): Vec3 => [c[0] + x, c[1] + y, c[2] + z])))) {
-        const sx = dot(corner, r), sy = dot(corner, u);
+        const at = move(transform, corner);
+        const sx = dot(at, r), sy = dot(at, u);
         minX = Math.min(minX, sx); maxX = Math.max(maxX, sx);
         minY = Math.min(minY, sy); maxY = Math.max(maxY, sy);
       }
@@ -105,16 +115,17 @@ export function render(boxes: Box[], view: View, options: { scale?: number; back
   new Uint32Array(data.buffer).fill(new Uint32Array(background.buffer)[0]);   // one word per pixel; both reads and writes use the platform byte order, so the bytes land in order
   const depth = new Float64Array(width * height).fill(-Infinity);
 
-  for (const c of centres) {
-    const color = parseColor(filled.get(key(...c))!);
+  for (const { c, color: hex, own, transform } of centres) {
+    const color = parseColor(hex);
     for (const face of FACES) {
       const n = face.normal;
-      if (dot(n, d) <= 1e-9 || filled.has(key(c[0] + n[0], c[1] + n[1], c[2] + n[2]))) continue;
-      // The face is o + s*U + t*V for s, t in [0, 1]; in screen space o -> (ox, oy), U -> (ux, uy), V -> (vx, vy).
-      const o: Vec3 = [0, 1, 2].map((i) => c[i] + 0.5 * n[i] - 0.5 * face.u[i] - 0.5 * face.v[i]) as Vec3;
+      if (dot(turn(transform, n), d) <= 1e-9 || own.has(key(c[0] + n[0], c[1] + n[1], c[2] + n[2]))) continue;
+      // The face is o + s*U + t*V for s, t in [0, 1]; in screen space o -> (ox, oy), U -> (ux, uy), V -> (vx, vy). A moved face keeps the shade of its rest direction.
+      const o = move(transform, [0, 1, 2].map((i) => c[i] + 0.5 * n[i] - 0.5 * face.u[i] - 0.5 * face.v[i]) as Vec3);
+      const fu = turn(transform, face.u), fv = turn(transform, face.v);
       const ox = dot(o, r), oy = dot(o, u), od = dot(o, d);
-      const ux = dot(face.u, r), uy = dot(face.u, u), ud = dot(face.u, d);
-      const vx = dot(face.v, r), vy = dot(face.v, u), vd = dot(face.v, d);
+      const ux = dot(fu, r), uy = dot(fu, u), ud = dot(fu, d);
+      const vx = dot(fv, r), vy = dot(fv, u), vd = dot(fv, d);
       const det = ux * vy - uy * vx;
       if (Math.abs(det) < 1e-9) continue;
       const xs = [ox, ox + ux, ox + vx, ox + ux + vx], ys = [oy, oy + uy, oy + vy, oy + uy + vy];
