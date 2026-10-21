@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "lib": ["es2024", "dom"], "types": [] },
+  "include": [
+    "hosts/js/web/host.ts",
+    "modules/*/web/**/*.ts",
+    "examples/modules/*/web/**/*.ts",
+    "hosts/conformance/modules/*/web/**/*.ts"
+  ]
+}
