@@ -5,7 +5,7 @@ import { draw, init } from '../web/index.ts';
 import type { Config, Ctx, physics } from '../types.gen.ts';
 
 const BODIES: physics.BodiesResult = [
-  { id: 'crate_a', position: [0, 1, 0], size: [1, 1, 1] },
+  { id: 'crate_a', position: [0.25, 1, 0], size: [1, 1, 1] },
   { id: 'plank', position: [0, 0.25, 0], size: [4, 0.5, 2] },
 ];
 const CLICKS: Config = { scale: 40, clickBody: 'sandbox_rules/crate' };
@@ -52,7 +52,7 @@ test('draw fills the canvas, then one rectangle per body with x from the centre 
   draw(ctx);
   assert.deepEqual(canvas.fills, [
     [0, 0, 800, 600],
-    [380, 540, 40, 40],
+    [390, 540, 40, 40],
     [320, 580, 160, 20],
   ]);
 });

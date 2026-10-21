@@ -37,13 +37,13 @@ function fakeAudio() {
   };
 }
 
-// Runs play with the given cues and `contacts` physics.contact events delivered, on a fresh fake AudioContext.
-function played(cues: Record<string, Cue>, contacts: number) {
+// Runs play with the given cues, `contacts` physics.contact events delivered and the given volume, on a fresh fake AudioContext.
+function played(cues: Record<string, Cue>, contacts: number, volume = 0.8) {
   const audio = fakeAudio();
   const ctx = {
     module: 'audio',
     state: undefined,
-    config: { volume: 0.8 },
+    config: { volume },
     host: { audio },
     records: (type: string) => (type === 'audio.cue' ? cues : {}),
     events: (id: string) => (id === 'physics.contact' ? Array.from({ length: contacts }, (_, n) => ({ id: `body_${n}`, with: 'ground' })) : []),
@@ -75,4 +75,11 @@ test('the cue is the first one for physics.contact; with none, contacts are sile
   const spawn: Cue = { event: 'physics.spawn', frequency: 220, duration: 0.5 };
   assert.deepEqual(played({ 'audio/a_spawn': spawn, 'audio/contact': CONTACT_CUE }, 1).oscillators.map((o) => o.frequency.value), [440]);
   assert.equal(played({ 'audio/a_spawn': spawn }, 1).oscillators.length, 0);
+});
+
+test('the tone takes frequency and duration from the first physics.contact cue and the gain from config.volume', () => {
+  const high: Cue = { event: 'physics.contact', frequency: 880, duration: 0.25 };
+  const audio = played({ 'audio/a_high': high, 'audio/contact': CONTACT_CUE }, 1, 0.5);
+  assert.deepEqual(audio.oscillators.map((o) => [o.frequency.value, o.started, o.stopped]), [[880, [NOW], [NOW + 0.25]]]);
+  assert.deepEqual(audio.gains.map((g) => g.gain.value), [0.5]);
 });
