@@ -26,6 +26,7 @@ const TYPES: Record<string, string> = {
 const PAGE = 'hosts/js/web/index.html';
 const IMPORT_MAP = '<script type="importmap">{"imports":{}}</script>';
 const WEB_BUNDLE = /^build\/(?:.+\/)?games\/[^/]+\/web\/bundle\.json$/;
+const LOCAL_HOST = /^(?:127\.0\.0\.1|localhost)(?::\d+)?$/i;
 
 const messageOf = (e: unknown): string => (e instanceof Error ? e.message : String(e));
 
@@ -58,6 +59,8 @@ function reply(res: http.ServerResponse, status: number, type: string, body: str
 }
 
 function handle(root: string, req: http.IncomingMessage, res: http.ServerResponse): void {
+  // A page of another site whose name it re-points to 127.0.0.1 (DNS rebinding) sends that name as Host.
+  if (!LOCAL_HOST.test(req.headers.host ?? '')) return reply(res, 403, TEXT, http.STATUS_CODES[403] as string);
   if (req.method !== 'GET' && req.method !== 'HEAD') {
     res.setHeader('Allow', 'GET, HEAD');
     return reply(res, 405, TEXT, http.STATUS_CODES[405] as string);

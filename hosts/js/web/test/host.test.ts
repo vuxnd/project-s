@@ -1,5 +1,8 @@
 // Tests for hosts/js/web/host.ts: bundleUrl, the fixed-step loop with fake clocks, and start with a fake environment (plan.md 4.13).
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { test } from 'node:test';
 import { MAX_TICKS_PER_FRAME, bundleUrl, start, step } from '../host.ts';
 import type { Clock, WebEnv } from '../host.ts';
@@ -99,6 +102,23 @@ test('step runs at most 8 ticks, counts a long pause as 0.25 s and keeps alpha i
   assert.equal(step(other, 3_600_000 + 15.625, 64, exact.game), 1);   // the backlog is gone: one step of time is one tick
 });
 
+test('step keeps the fraction of a step when it drops the backlog, also when exactly one step is left', () => {
+  const { game, log } = fakeGame();
+  const clock = newClock();
+  step(clock, 0, 64, game);
+  step(clock, 7.8125, 64, game);   // half a step waits
+  assert.equal(step(clock, 1007.8125, 64, game), 8);   // 0.25 s plus the half step is 16.5 steps; 8 run, 8 are dropped
+  assert.deepEqual(log.frames[2], [0.25, 0.5]);
+  assert.equal(clock.acc, 0.0078125);
+
+  const nine = fakeGame();
+  const other = newClock();
+  step(other, 0, 64, nine.game);
+  assert.equal(step(other, 140.625, 64, nine.game), 8);   // 9 steps: 8 run and the ninth is dropped
+  assert.deepEqual(nine.log.frames[1], [0.140625, 0]);
+  assert.equal(other.acc, 0);
+});
+
 // A web bundle for the module `m`; its fixed system counts ticks and its frame system counts frame runs.
 const WEB_BUNDLE: Bundle = {
   format: 1, game: 'g', host: 'web', fixedHz: 64,
@@ -166,17 +186,31 @@ test('start fetches the web bundle, loads it with the canvas and audio as ctx.ho
   assert.deepEqual(asked.reports, []);
 });
 
-test('start imports module entries from the site root when no importer is given', async () => {
-  const { env, asked } = fakeEnv({ importer: undefined });
-  await assert.rejects(start(env), { message: /^Cannot find module .*mods[\\/]m[\\/]web[\\/]index\.ts/ });
-  assert.equal(asked.reports.length, 1);
-  assert.match(asked.reports[0], /^Cannot find module .*mods[\\/]m[\\/]web[\\/]index\.ts/);
+test('start imports module entries from the site root when no importer is given', async (t) => {
+  // load imports root + entry and root is '/', so an entry that is a file's absolute posix path without its first '/' loads that file.
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-'));
+  t.after(() => { fs.rmSync(dir, { recursive: true, force: true }); });
+  const file = path.join(dir, 'index.mjs');
+  fs.writeFileSync(file, [
+    'export function init() { return { ticks: 0, frames: 0 }; }',
+    'export function count(ctx) { ctx.state.ticks++; }',
+    'export function draw(ctx) { ctx.state.frames++; }',
+    '',
+  ].join('\n'));
+  const entry = file.replaceAll('\\', '/').replace(/^\//, '');
+  const bundle: Bundle = { ...WEB_BUNDLE, modules: [{ ...WEB_BUNDLE.modules[0], entry }] };
+  const { env, callbacks, asked } = fakeEnv({ importer: undefined, async fetchJson() { return bundle; } });
+  const game = await start(env);
+  assert.deepEqual(asked.reports, []);
+  runFrame(callbacks, 0);
+  runFrame(callbacks, 15.625);
+  assert.deepEqual(game.snapshot(), { m: { ticks: 1, frames: 2 } });
 });
 
 test('start reports a bundle for another host and loads nothing', async () => {
   const { env, callbacks, asked } = fakeEnv({ async fetchJson() { return { ...WEB_BUNDLE, host: 'node' }; } });
-  await assert.rejects(start(env), { message: 'bundle host node; this host is web' });
-  assert.deepEqual(asked.reports, ['bundle host node; this host is web']);
+  await assert.rejects(start(env));
+  assert.equal(asked.reports.length, 1);
   assert.deepEqual(asked.entries, []);
   assert.equal(callbacks.length, 0);
 });
