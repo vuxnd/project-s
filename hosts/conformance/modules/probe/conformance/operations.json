@@ -1,0 +1,37 @@
+{
+  "$schema": "../../../../../schemas/trace.schema.json",
+  "summary": "ctx.call runs an operation in its provider with the provider's own state, also the probe's own log; game.call sees the same state.",
+  "fixedHz": 50,
+  "ticks": 1,
+  "modules": ["probe_peer"],
+  "records": {
+    "probe.step": {
+      "o01": { "$version": 1, "tick": 0, "in": "first", "do": "call", "id": "probe_peer.add", "payload": { "n": 5 } },
+      "o02": { "$version": 1, "tick": 0, "in": "first", "do": "call", "id": "probe_peer.add", "payload": { "n": 5 } },
+      "o03": { "$version": 1, "tick": 0, "in": "second", "do": "call", "id": "probe.log" },
+      "o04": { "$version": 1, "tick": 0, "in": "second", "do": "call", "id": "probe_peer.add", "payload": { "n": 0 } }
+    }
+  },
+  "expect": [
+    {
+      "at": 1,
+      "call": "probe.log",
+      "equals": [
+        { "tick": 0, "in": "first", "do": "call", "id": "probe_peer.add", "result": 5 },
+        { "tick": 0, "in": "first", "do": "call", "id": "probe_peer.add", "result": 10 },
+        {
+          "tick": 0,
+          "in": "second",
+          "do": "call",
+          "id": "probe.log",
+          "result": [
+            { "tick": 0, "in": "first", "do": "call", "id": "probe_peer.add", "result": 5 },
+            { "tick": 0, "in": "first", "do": "call", "id": "probe_peer.add", "result": 10 }
+          ]
+        },
+        { "tick": 0, "in": "second", "do": "call", "id": "probe_peer.add", "result": 20 }
+      ]
+    },
+    { "at": 1, "call": "probe_peer.add", "params": { "n": 0 }, "equals": 20 }
+  ]
+}

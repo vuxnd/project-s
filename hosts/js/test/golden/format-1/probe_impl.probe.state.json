@@ -1,0 +1,135 @@
+{
+  "trace": "hosts/conformance/modules/probe/conformance/state.json",
+  "contract": "probe",
+  "implementation": "probe_impl",
+  "ticks": 3,
+  "bundle": {
+    "format": 1,
+    "game": "probe.state",
+    "host": "node",
+    "fixedHz": 50,
+    "modules": [
+      {
+        "id": "probe_impl",
+        "entry": "hosts/conformance/modules/probe_impl/ts/index.ts",
+        "sees": ["probe", "probe_impl"],
+        "absent": ["probe_peer"],
+        "packages": []
+      }
+    ],
+    "contracts": {
+      "probe": "probe_impl"
+    },
+    "operations": {
+      "probe.log": "probe_impl"
+    },
+    "events": {
+      "probe.ping": "probe"
+    },
+    "types": {
+      "probe.step": 1
+    },
+    "config": {
+      "probe": {
+        "label": "probe"
+      },
+      "probe_impl": {
+        "mode": "default",
+        "depth": 1
+      }
+    },
+    "records": {
+      "probe.step": {
+        "trace/t01": {
+          "tick": 0,
+          "in": "init",
+          "do": "time"
+        },
+        "trace/t02": {
+          "tick": 0,
+          "in": "first",
+          "do": "time"
+        },
+        "trace/t03": {
+          "tick": 2,
+          "in": "second",
+          "do": "time"
+        }
+      }
+    },
+    "assets": [],
+    "schedule": {
+      "fixed": ["probe_impl.first", "probe_impl.second"],
+      "frame": []
+    },
+    "schemas": {
+      "state": {
+        "probe_impl": "hosts/conformance/modules/probe_impl/schemas/state.schema.json"
+      },
+      "events": {
+        "probe.ping": "hosts/conformance/modules/probe/schemas/ping.schema.json"
+      },
+      "params": {},
+      "results": {
+        "probe.log": "hosts/conformance/modules/probe/schemas/log.schema.json"
+      }
+    }
+  },
+  "inputs": [],
+  "expect": [
+    {
+      "at": 0,
+      "call": "probe.log",
+      "equals": [
+        {
+          "tick": 0,
+          "in": "init",
+          "do": "time",
+          "result": {
+            "tick": 0,
+            "dt": 0.02
+          }
+        }
+      ]
+    },
+    {
+      "at": 3,
+      "call": "probe.log",
+      "pointer": "/2/result/tick",
+      "equals": 2
+    },
+    {
+      "at": 3,
+      "call": "probe.log",
+      "equals": [
+        {
+          "tick": 0,
+          "in": "init",
+          "do": "time",
+          "result": {
+            "tick": 0,
+            "dt": 0.02
+          }
+        },
+        {
+          "tick": 0,
+          "in": "first",
+          "do": "time",
+          "result": {
+            "tick": 0,
+            "dt": 0.02
+          }
+        },
+        {
+          "tick": 2,
+          "in": "second",
+          "do": "time",
+          "result": {
+            "tick": 2,
+            "dt": 0.02
+          }
+        }
+      ]
+    }
+  ]
+}

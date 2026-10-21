@@ -1,0 +1,207 @@
+{
+  "trace": "hosts/conformance/modules/probe/conformance/order.json",
+  "contract": "probe",
+  "implementation": "probe_impl",
+  "ticks": 2,
+  "bundle": {
+    "format": 1,
+    "game": "probe.order",
+    "host": "node",
+    "fixedHz": 50,
+    "modules": [
+      {
+        "id": "probe_peer",
+        "entry": "hosts/conformance/modules/probe_peer/ts/index.ts",
+        "sees": ["probe_peer"],
+        "absent": [],
+        "packages": []
+      },
+      {
+        "id": "probe_impl",
+        "entry": "hosts/conformance/modules/probe_impl/ts/index.ts",
+        "sees": ["probe", "probe_impl", "probe_peer"],
+        "absent": [],
+        "packages": []
+      }
+    ],
+    "contracts": {
+      "probe": "probe_impl"
+    },
+    "operations": {
+      "probe.log": "probe_impl",
+      "probe_peer.add": "probe_peer"
+    },
+    "events": {
+      "probe.ping": "probe",
+      "probe_peer.note": "probe_peer"
+    },
+    "types": {
+      "probe.step": 1
+    },
+    "config": {
+      "probe": {
+        "label": "probe"
+      },
+      "probe_impl": {
+        "mode": "default",
+        "depth": 1
+      },
+      "probe_peer": {}
+    },
+    "records": {
+      "probe.step": {
+        "trace/s01": {
+          "tick": 0,
+          "in": "init",
+          "do": "has",
+          "id": "probe_peer"
+        },
+        "trace/s02": {
+          "tick": 0,
+          "in": "init",
+          "do": "call",
+          "id": "probe_peer.add",
+          "payload": {
+            "n": 1
+          }
+        },
+        "trace/s03": {
+          "tick": 0,
+          "in": "first",
+          "do": "call",
+          "id": "probe_peer.add",
+          "payload": {
+            "n": 1
+          }
+        },
+        "trace/s04": {
+          "tick": 0,
+          "in": "second",
+          "do": "call",
+          "id": "probe_peer.add",
+          "payload": {
+            "n": 1
+          }
+        },
+        "trace/s05": {
+          "tick": 1,
+          "in": "first",
+          "do": "call",
+          "id": "probe_peer.add",
+          "payload": {
+            "n": 1
+          }
+        },
+        "trace/s06": {
+          "tick": 1,
+          "in": "second",
+          "do": "call",
+          "id": "probe_peer.add",
+          "payload": {
+            "n": 1
+          }
+        },
+        "trace/s07": {
+          "tick": 1,
+          "in": "second",
+          "do": "time"
+        }
+      }
+    },
+    "assets": [],
+    "schedule": {
+      "fixed": ["probe_impl.first", "probe_peer.peer", "probe_impl.second"],
+      "frame": []
+    },
+    "schemas": {
+      "state": {
+        "probe_impl": "hosts/conformance/modules/probe_impl/schemas/state.schema.json",
+        "probe_peer": "hosts/conformance/modules/probe_peer/schemas/state.schema.json"
+      },
+      "events": {
+        "probe.ping": "hosts/conformance/modules/probe/schemas/ping.schema.json",
+        "probe_peer.note": "hosts/conformance/modules/probe_peer/schemas/note.schema.json"
+      },
+      "params": {
+        "probe_peer.add": "hosts/conformance/modules/probe_peer/schemas/add_params.schema.json"
+      },
+      "results": {
+        "probe.log": "hosts/conformance/modules/probe/schemas/log.schema.json",
+        "probe_peer.add": "hosts/conformance/modules/probe_peer/schemas/add_result.schema.json"
+      }
+    }
+  },
+  "inputs": [],
+  "expect": [
+    {
+      "at": 2,
+      "call": "probe.log",
+      "equals": [
+        {
+          "tick": 0,
+          "in": "init",
+          "do": "has",
+          "id": "probe_peer",
+          "result": true
+        },
+        {
+          "tick": 0,
+          "in": "init",
+          "do": "call",
+          "id": "probe_peer.add",
+          "result": 1
+        },
+        {
+          "tick": 0,
+          "in": "first",
+          "do": "call",
+          "id": "probe_peer.add",
+          "result": 2
+        },
+        {
+          "tick": 0,
+          "in": "second",
+          "do": "call",
+          "id": "probe_peer.add",
+          "result": 13
+        },
+        {
+          "tick": 1,
+          "in": "first",
+          "do": "call",
+          "id": "probe_peer.add",
+          "result": 14
+        },
+        {
+          "tick": 1,
+          "in": "second",
+          "do": "call",
+          "id": "probe_peer.add",
+          "result": 25
+        },
+        {
+          "tick": 1,
+          "in": "second",
+          "do": "time",
+          "result": {
+            "tick": 1,
+            "dt": 0.02
+          }
+        }
+      ]
+    },
+    {
+      "at": 2,
+      "call": "probe_peer.add",
+      "params": {
+        "n": 0
+      },
+      "equals": 25
+    },
+    {
+      "by": 2,
+      "emitted": "probe_peer.note",
+      "count": 2
+    }
+  ]
+}

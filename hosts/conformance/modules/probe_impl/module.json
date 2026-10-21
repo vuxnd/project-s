@@ -1,0 +1,14 @@
+{
+  "$schema": "../../../../schemas/module.schema.json",
+  "id": "probe_impl",
+  "summary": "Implements probe: a step interpreter that runs the probe.step records in init and in two fixed systems and logs each result.",
+  "implements": ["probe"],
+  "optional": ["probe_peer"],
+  "state": "schemas/state.schema.json",
+  "config": { "schema": "schemas/config.schema.json", "defaults": { "mode": "default", "depth": 1 } },
+  "systems": [
+    { "name": "first", "loop": "fixed" },
+    { "name": "second", "loop": "fixed" }
+  ],
+  "hosts": { "node": "ts/index.ts", "python": "python/probe_impl.py" }
+}

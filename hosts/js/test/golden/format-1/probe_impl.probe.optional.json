@@ -1,0 +1,174 @@
+{
+  "trace": "hosts/conformance/modules/probe/conformance/optional.json",
+  "contract": "probe",
+  "implementation": "probe_impl",
+  "ticks": 1,
+  "bundle": {
+    "format": 1,
+    "game": "probe.optional",
+    "host": "node",
+    "fixedHz": 50,
+    "modules": [
+      {
+        "id": "probe_impl",
+        "entry": "hosts/conformance/modules/probe_impl/ts/index.ts",
+        "sees": ["probe", "probe_impl"],
+        "absent": ["probe_peer"],
+        "packages": []
+      }
+    ],
+    "contracts": {
+      "probe": "probe_impl"
+    },
+    "operations": {
+      "probe.log": "probe_impl"
+    },
+    "events": {
+      "probe.ping": "probe"
+    },
+    "types": {
+      "probe.step": 1
+    },
+    "config": {
+      "probe": {
+        "label": "probe"
+      },
+      "probe_impl": {
+        "mode": "default",
+        "depth": 1
+      }
+    },
+    "records": {
+      "probe.step": {
+        "trace/p01": {
+          "tick": 0,
+          "in": "init",
+          "do": "has",
+          "id": "probe_peer"
+        },
+        "trace/p02": {
+          "tick": 0,
+          "in": "first",
+          "do": "has",
+          "id": "probe_peer"
+        },
+        "trace/p03": {
+          "tick": 0,
+          "in": "first",
+          "do": "events",
+          "id": "probe_peer.note"
+        },
+        "trace/p04": {
+          "tick": 0,
+          "in": "first",
+          "do": "call",
+          "id": "probe_peer.add",
+          "payload": {
+            "n": 1
+          }
+        },
+        "trace/p05": {
+          "tick": 0,
+          "in": "first",
+          "do": "configOf",
+          "id": "probe_peer"
+        },
+        "trace/p06": {
+          "tick": 0,
+          "in": "first",
+          "do": "emit",
+          "id": "probe_peer.note",
+          "payload": {
+            "tick": 0
+          }
+        },
+        "trace/p07": {
+          "tick": 0,
+          "in": "first",
+          "do": "records",
+          "id": "probe_peer.nothing"
+        }
+      }
+    },
+    "assets": [],
+    "schedule": {
+      "fixed": ["probe_impl.first", "probe_impl.second"],
+      "frame": []
+    },
+    "schemas": {
+      "state": {
+        "probe_impl": "hosts/conformance/modules/probe_impl/schemas/state.schema.json"
+      },
+      "events": {
+        "probe.ping": "hosts/conformance/modules/probe/schemas/ping.schema.json"
+      },
+      "params": {},
+      "results": {
+        "probe.log": "hosts/conformance/modules/probe/schemas/log.schema.json"
+      }
+    }
+  },
+  "inputs": [],
+  "expect": [
+    {
+      "at": 1,
+      "call": "probe.log",
+      "equals": [
+        {
+          "tick": 0,
+          "in": "init",
+          "do": "has",
+          "id": "probe_peer",
+          "result": false
+        },
+        {
+          "tick": 0,
+          "in": "first",
+          "do": "has",
+          "id": "probe_peer",
+          "result": false
+        },
+        {
+          "tick": 0,
+          "in": "first",
+          "do": "events",
+          "id": "probe_peer.note",
+          "result": []
+        },
+        {
+          "tick": 0,
+          "in": "first",
+          "do": "call",
+          "id": "probe_peer.add",
+          "error": "absent: probe_peer.add"
+        },
+        {
+          "tick": 0,
+          "in": "first",
+          "do": "configOf",
+          "id": "probe_peer",
+          "error": "absent: probe_peer"
+        },
+        {
+          "tick": 0,
+          "in": "first",
+          "do": "emit",
+          "id": "probe_peer.note",
+          "result": null
+        },
+        {
+          "tick": 0,
+          "in": "first",
+          "do": "records",
+          "id": "probe_peer.nothing",
+          "result": {}
+        }
+      ]
+    },
+    {
+      "by": 1,
+      "emitted": "probe_peer.note",
+      "count": 0
+    }
+  ]
+}

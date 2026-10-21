@@ -1,0 +1,36 @@
+{
+  "$schema": "../../../../../schemas/trace.schema.json",
+  "summary": "An event emitted in tick N reaches every system of tick N+1 once and no system of tick N; an event emitted in init reaches tick 0.",
+  "fixedHz": 50,
+  "ticks": 3,
+  "records": {
+    "probe.step": {
+      "e01": { "$version": 1, "tick": 0, "in": "init", "do": "emit", "id": "probe.ping", "payload": { "n": 0 } },
+      "e02": { "$version": 1, "tick": 0, "in": "first", "do": "events", "id": "probe.ping" },
+      "e03": { "$version": 1, "tick": 0, "in": "first", "do": "emit", "id": "probe.ping", "payload": { "n": 1 } },
+      "e04": { "$version": 1, "tick": 0, "in": "second", "do": "events", "id": "probe.ping" },
+      "e05": { "$version": 1, "tick": 0, "in": "second", "do": "emit", "id": "probe.ping", "payload": { "n": 2 } },
+      "e06": { "$version": 1, "tick": 1, "in": "first", "do": "events", "id": "probe.ping" },
+      "e07": { "$version": 1, "tick": 1, "in": "second", "do": "events", "id": "probe.ping" },
+      "e08": { "$version": 1, "tick": 2, "in": "first", "do": "events", "id": "probe.ping" }
+    }
+  },
+  "expect": [
+    {
+      "at": 3,
+      "call": "probe.log",
+      "equals": [
+        { "tick": 0, "in": "init", "do": "emit", "id": "probe.ping", "result": null },
+        { "tick": 0, "in": "first", "do": "events", "id": "probe.ping", "result": [{ "n": 0 }] },
+        { "tick": 0, "in": "first", "do": "emit", "id": "probe.ping", "result": null },
+        { "tick": 0, "in": "second", "do": "events", "id": "probe.ping", "result": [{ "n": 0 }] },
+        { "tick": 0, "in": "second", "do": "emit", "id": "probe.ping", "result": null },
+        { "tick": 1, "in": "first", "do": "events", "id": "probe.ping", "result": [{ "n": 1 }, { "n": 2 }] },
+        { "tick": 1, "in": "second", "do": "events", "id": "probe.ping", "result": [{ "n": 1 }, { "n": 2 }] },
+        { "tick": 2, "in": "first", "do": "events", "id": "probe.ping", "result": [] }
+      ]
+    },
+    { "by": 1, "emitted": "probe.ping", "count": 2 },
+    { "by": 3, "emitted": "probe.ping", "count": 2 }
+  ]
+}

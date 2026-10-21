@@ -1,0 +1,35 @@
+{
+  "$schema": "../../../../../schemas/trace.schema.json",
+  "summary": "probe_peer.peer runs between probe_impl.first and second; probe_peer is initialised before probe_impl, so probe_impl's init can call it.",
+  "fixedHz": 50,
+  "ticks": 2,
+  "modules": ["probe_peer"],
+  "records": {
+    "probe.step": {
+      "s01": { "$version": 1, "tick": 0, "in": "init", "do": "has", "id": "probe_peer" },
+      "s02": { "$version": 1, "tick": 0, "in": "init", "do": "call", "id": "probe_peer.add", "payload": { "n": 1 } },
+      "s03": { "$version": 1, "tick": 0, "in": "first", "do": "call", "id": "probe_peer.add", "payload": { "n": 1 } },
+      "s04": { "$version": 1, "tick": 0, "in": "second", "do": "call", "id": "probe_peer.add", "payload": { "n": 1 } },
+      "s05": { "$version": 1, "tick": 1, "in": "first", "do": "call", "id": "probe_peer.add", "payload": { "n": 1 } },
+      "s06": { "$version": 1, "tick": 1, "in": "second", "do": "call", "id": "probe_peer.add", "payload": { "n": 1 } },
+      "s07": { "$version": 1, "tick": 1, "in": "second", "do": "time" }
+    }
+  },
+  "expect": [
+    {
+      "at": 2,
+      "call": "probe.log",
+      "equals": [
+        { "tick": 0, "in": "init", "do": "has", "id": "probe_peer", "result": true },
+        { "tick": 0, "in": "init", "do": "call", "id": "probe_peer.add", "result": 1 },
+        { "tick": 0, "in": "first", "do": "call", "id": "probe_peer.add", "result": 2 },
+        { "tick": 0, "in": "second", "do": "call", "id": "probe_peer.add", "result": 13 },
+        { "tick": 1, "in": "first", "do": "call", "id": "probe_peer.add", "result": 14 },
+        { "tick": 1, "in": "second", "do": "call", "id": "probe_peer.add", "result": 25 },
+        { "tick": 1, "in": "second", "do": "time", "result": { "tick": 1, "dt": 0.02 } }
+      ]
+    },
+    { "at": 2, "call": "probe_peer.add", "params": { "n": 0 }, "equals": 25 },
+    { "by": 2, "emitted": "probe_peer.note", "count": 2 }
+  ]
+}

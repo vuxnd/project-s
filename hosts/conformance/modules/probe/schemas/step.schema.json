@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Step",
+  "description": "One action probe_impl performs at a tick, in init or in one of its two systems.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$version", "tick", "in", "do"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "$version": { "const": 1 },
+    "$comment": { "type": "string" },
+    "tick": { "description": "Completed ticks when the step runs.", "type": "integer", "minimum": 0 },
+    "in": { "description": "Where it runs.", "type": "string", "enum": ["init", "first", "second"] },
+    "do": { "description": "The ctx call it makes; time reads ctx.tick and ctx.dt.", "type": "string", "enum": ["emit", "events", "call", "has", "config", "configOf", "records", "time"] },
+    "id": { "description": "The id the ctx call takes.", "type": "string", "pattern": "^[a-z][a-z0-9_]{0,63}(\\.[a-z][a-z0-9_]{0,63})?$" },
+    "payload": { "description": "The payload of emit or the params of call." }
+  }
+}

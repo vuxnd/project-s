@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Config",
+  "description": "Values the config trace reads back; probe_impl does not act on them.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["mode", "depth"],
+  "properties": {
+    "mode": { "type": "string" },
+    "depth": { "type": "integer" }
+  }
+}

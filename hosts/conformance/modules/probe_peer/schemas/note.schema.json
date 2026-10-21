@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Note",
+  "description": "Emitted by the peer system once per tick.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["tick"],
+  "properties": {
+    "tick": { "type": "integer" }
+  }
+}

@@ -1,0 +1,217 @@
+{
+  "trace": "hosts/conformance/modules/probe/conformance/events.json",
+  "contract": "probe",
+  "implementation": "probe_impl",
+  "ticks": 3,
+  "bundle": {
+    "format": 1,
+    "game": "probe.events",
+    "host": "python",
+    "fixedHz": 50,
+    "modules": [
+      {
+        "id": "probe_impl",
+        "entry": "hosts/conformance/modules/probe_impl/python/probe_impl.py",
+        "sees": ["probe", "probe_impl"],
+        "absent": ["probe_peer"],
+        "packages": []
+      }
+    ],
+    "contracts": {
+      "probe": "probe_impl"
+    },
+    "operations": {
+      "probe.log": "probe_impl"
+    },
+    "events": {
+      "probe.ping": "probe"
+    },
+    "types": {
+      "probe.step": 1
+    },
+    "config": {
+      "probe": {
+        "label": "probe"
+      },
+      "probe_impl": {
+        "mode": "default",
+        "depth": 1
+      }
+    },
+    "records": {
+      "probe.step": {
+        "trace/e01": {
+          "tick": 0,
+          "in": "init",
+          "do": "emit",
+          "id": "probe.ping",
+          "payload": {
+            "n": 0
+          }
+        },
+        "trace/e02": {
+          "tick": 0,
+          "in": "first",
+          "do": "events",
+          "id": "probe.ping"
+        },
+        "trace/e03": {
+          "tick": 0,
+          "in": "first",
+          "do": "emit",
+          "id": "probe.ping",
+          "payload": {
+            "n": 1
+          }
+        },
+        "trace/e04": {
+          "tick": 0,
+          "in": "second",
+          "do": "events",
+          "id": "probe.ping"
+        },
+        "trace/e05": {
+          "tick": 0,
+          "in": "second",
+          "do": "emit",
+          "id": "probe.ping",
+          "payload": {
+            "n": 2
+          }
+        },
+        "trace/e06": {
+          "tick": 1,
+          "in": "first",
+          "do": "events",
+          "id": "probe.ping"
+        },
+        "trace/e07": {
+          "tick": 1,
+          "in": "second",
+          "do": "events",
+          "id": "probe.ping"
+        },
+        "trace/e08": {
+          "tick": 2,
+          "in": "first",
+          "do": "events",
+          "id": "probe.ping"
+        }
+      }
+    },
+    "assets": [],
+    "schedule": {
+      "fixed": ["probe_impl.first", "probe_impl.second"],
+      "frame": []
+    },
+    "schemas": {
+      "state": {
+        "probe_impl": "hosts/conformance/modules/probe_impl/schemas/state.schema.json"
+      },
+      "events": {
+        "probe.ping": "hosts/conformance/modules/probe/schemas/ping.schema.json"
+      },
+      "params": {},
+      "results": {
+        "probe.log": "hosts/conformance/modules/probe/schemas/log.schema.json"
+      }
+    }
+  },
+  "inputs": [],
+  "expect": [
+    {
+      "at": 3,
+      "call": "probe.log",
+      "equals": [
+        {
+          "tick": 0,
+          "in": "init",
+          "do": "emit",
+          "id": "probe.ping",
+          "result": null
+        },
+        {
+          "tick": 0,
+          "in": "first",
+          "do": "events",
+          "id": "probe.ping",
+          "result": [
+            {
+              "n": 0
+            }
+          ]
+        },
+        {
+          "tick": 0,
+          "in": "first",
+          "do": "emit",
+          "id": "probe.ping",
+          "result": null
+        },
+        {
+          "tick": 0,
+          "in": "second",
+          "do": "events",
+          "id": "probe.ping",
+          "result": [
+            {
+              "n": 0
+            }
+          ]
+        },
+        {
+          "tick": 0,
+          "in": "second",
+          "do": "emit",
+          "id": "probe.ping",
+          "result": null
+        },
+        {
+          "tick": 1,
+          "in": "first",
+          "do": "events",
+          "id": "probe.ping",
+          "result": [
+            {
+              "n": 1
+            },
+            {
+              "n": 2
+            }
+          ]
+        },
+        {
+          "tick": 1,
+          "in": "second",
+          "do": "events",
+          "id": "probe.ping",
+          "result": [
+            {
+              "n": 1
+            },
+            {
+              "n": 2
+            }
+          ]
+        },
+        {
+          "tick": 2,
+          "in": "first",
+          "do": "events",
+          "id": "probe.ping",
+          "result": []
+        }
+      ]
+    },
+    {
+      "by": 1,
+      "emitted": "probe.ping",
+      "count": 2
+    },
+    {
+      "by": 3,
+      "emitted": "probe.ping",
+      "count": 2
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "$schema": "../../../../schemas/module.schema.json",
+  "id": "probe_other",
+  "summary": "Content only: a record type, an event and a record that probe_impl cannot see, so the visibility trace has something to refuse.",
+  "types": { "secret": "schemas/secret.schema.json" },
+  "events": { "whisper": "schemas/whisper.schema.json" }
+}
