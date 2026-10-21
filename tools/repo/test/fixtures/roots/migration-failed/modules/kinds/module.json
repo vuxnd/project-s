@@ -1,0 +1,5 @@
+{
+  "id": "kinds",
+  "summary": "Declares the record type item at version 2; its migration throws.",
+  "types": { "item": "schemas/item.schema.json" }
+}

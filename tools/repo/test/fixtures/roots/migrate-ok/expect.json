@@ -1,0 +1,6 @@
+{
+  "$comment": "shapes.box is at version 2 with its migration files; one.json and the trace size.json still hold version 1 records.",
+  "errors": ["outdated-record"],
+  "warnings": [],
+  "generated": false
+}

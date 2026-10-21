@@ -1,0 +1,5 @@
+{
+  "id": "pack",
+  "summary": "Holds a box record that is still at version 1.",
+  "requires": ["shapes"]
+}

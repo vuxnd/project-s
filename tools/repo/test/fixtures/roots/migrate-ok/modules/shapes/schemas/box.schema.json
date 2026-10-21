@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Box",
+  "description": "An axis-aligned box. Version 2 stores half extents; version 1 stored the full size in size.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$version", "halfExtents"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "$version": { "const": 2 },
+    "$comment": { "type": "string" },
+    "halfExtents": { "type": "array", "items": { "type": "number" }, "minItems": 3, "maxItems": 3 }
+  }
+}
