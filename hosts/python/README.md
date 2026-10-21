@@ -12,11 +12,11 @@ Runs bundles and compiled traces on Python 3.11 or newer. Standard library only.
 
 ## Run
 
-From the repository root, always through the launcher:
+From the repository root, always through the launcher; the second command needs `npm run test:traces` first, the third `npm run build -- sandbox --host python --root examples`:
 
 ```sh
 node hosts/python/run.ts -m unittest discover -s hosts/python -p "test_*.py"
-node hosts/python/run.ts hosts/python/conformance.py build/traces/python
+node hosts/python/run.ts hosts/python/conformance.py build/hosts/conformance/traces/python
 node hosts/python/run.ts hosts/python/play.py build/examples/games/sandbox/python/bundle.json 300
 ```
 

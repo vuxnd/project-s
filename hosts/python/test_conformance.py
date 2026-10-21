@@ -311,6 +311,19 @@ class ConformanceTests(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertIn('python: 1 passed, 0 failed', r.stdout)
 
+    def test_conformance_py_prints_any_character_through_a_pipe(self):
+        expect = [{'at': 0, 'call': 'counter.get', 'pointer': '/→',
+                   'equals': 1}]
+        folder = self.write('arrow', ok=trace_bundle('ok', expect))
+        r = subprocess.run([sys.executable, '-I', '-B',
+                            os.path.join(HERE, 'conformance.py'), folder],
+                           cwd=self.tmp, capture_output=True,
+                           encoding='utf-8')
+        self.assertEqual(r.returncode, 1, r.stderr)
+        self.assertIn('  expect[0]: counter.get /→: expected 1, got undefined',
+                      r.stdout)
+        self.assertIn('python: 0 passed, 1 failed', r.stdout)
+
     def test_play_py_prints_the_snapshot_and_event_counts(self):
         bundle = trace_bundle('ok', PASSING)['bundle']
         path = os.path.join(self.write('bundles', ok=bundle), 'ok.json')

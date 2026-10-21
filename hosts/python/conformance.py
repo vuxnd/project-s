@@ -161,4 +161,7 @@ def main(argv: list[str]) -> int:
 
 
 if __name__ == '__main__':
+    # Lines carry text from traces and module code, which a Windows code page
+    # cannot always print; -I ignores PYTHONIOENCODING.
+    sys.stdout.reconfigure(encoding='utf-8', errors='backslashreplace')
     sys.exit(main(sys.argv[1:]))

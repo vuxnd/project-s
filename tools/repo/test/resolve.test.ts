@@ -118,7 +118,7 @@ const LOCATIONS: [root: string, rule: string, file: string, pointer: string, mes
   ['no-provider', 'no-provider', 'games/demo/game.json', '/modules', 'contract api has no implementation selected; add one of: impl'],
   ['one-provider', 'one-provider', 'games/demo/game.json', '/modules', 'contract api has 2 implementations selected: impl_a, impl_b; keep one'],
   ['cycle-requires', 'cycle', 'games/demo/game.json', '/modules', 'requires cycle: a -> b -> a'],
-  ['no-host-entry', 'no-host-entry', 'modules/web_only/module.json', '/hosts', 'web_only has no entry for host node'],
+  ['no-host-entry', 'no-host-entry', 'modules/web_only/module.json', '/hosts', `web_only has no entry for host node, needed by ${FIXTURES}/no-host-entry/games/demo/game.json`],
   ['unknown-module-game', 'unknown-module', 'games/demo/game.json', '/modules/ghost', undefined],
 ];
 
@@ -319,8 +319,17 @@ test('no-host-entry also names a code module selected through requires, and spar
     'modules/pack/module.json': { id: 'pack', summary: 'x' },
     ...game(['node'], { user: {}, impl: {} }),
   });
-  assert.deepEqual(describeAll(resolveDemo(index).problems), ['error no-host-entry modules/helper/module.json#/hosts: helper has no entry for host node']);
+  assert.deepEqual(describeAll(resolveDemo(index).problems), ['error no-host-entry modules/helper/module.json#/hosts: helper has no entry for host node, needed by games/demo/game.json']);
   assert.deepEqual(resolveDemo(index).order, ['helper', 'impl', 'pack', 'user']);
+});
+
+test('no-host-entry names an implementation that declares nothing but implements, when its contract has operations', (t) => {
+  const index = load(t, {
+    ...contract('api', { operations: { echo: {} } }),
+    'modules/impl/module.json': { id: 'impl', summary: 'x', implements: ['api'] },
+    ...game(['node'], { impl: {} }),
+  });
+  assert.deepEqual(describeAll(resolveDemo(index).problems), ['error no-host-entry modules/impl/module.json#/hosts: impl has no entry for host node, needed by games/demo/game.json']);
 });
 
 test('load order takes the smallest ready id first', (t) => {
@@ -442,7 +451,7 @@ test('a trace composition reports its problems at the trace file', (t) => {
   const file = 'modules/api/conformance/t.json';
   const resolution = resolve(index, traceComposition(index.modules.get('api')!, index.modules.get('impl')!, trace, file), 'node');
   assert.deepEqual(where(resolution.problems), [`error unknown-module ${file}#/ghost`, 'error no-host-entry modules/peer/module.json#/hosts']);
-  assert.equal(resolution.problems[1].message, 'peer has no entry for host node');
+  assert.equal(resolution.problems[1].message, `peer has no entry for host node, needed by ${file}`);
 });
 
 test('traceComposition does not share config with the trace, and gameComposition does not share entries with the game', (t) => {
