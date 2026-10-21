@@ -27,7 +27,7 @@ Input enters through `web/` modules, never through `host.ts`, which calls `game.
 
 ## Dev server
 
-`serve.ts` serves the repository on `127.0.0.1` for GET and HEAD. A `.ts` file is sent as `text/javascript` with its types stripped by `module.stripTypeScriptTypes`, which Node marks experimental, so `npm run serve` passes `--disable-warning=ExperimentalWarning`. `index.html` gets an empty import map. A path with a NUL, a `..` segment, or a target outside the repository is 403.
+`serve.ts` serves the repository on `127.0.0.1` for GET and HEAD. A `.ts` file is sent as `text/javascript` with its types stripped by `module.stripTypeScriptTypes`, which Node marks experimental, so `npm run serve` passes `--disable-warning=ExperimentalWarning`. `index.html` gets an empty import map. A path with a NUL, a `..` segment, or a target outside the repository is 403, and so is a request whose `Host` is not `127.0.0.1` or `localhost`.
 
 No npm package is served yet. A web bundle whose modules list a package other than a `node:` built-in gets 500 `packages are not served by the dev server yet`; the page then shows the `bundle not found` text, and the response body is in the browser's network panel. The `packages` field of the bundle is where serving them would start.
 
