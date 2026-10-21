@@ -125,6 +125,22 @@ class RuntimeRules(unittest.TestCase):
         self.assertEqual(first.snapshot(), {'m': {'calls': 1}})
         self.assertEqual(second.snapshot(), {'m': {'calls': 1}})
 
+    def test_r2_an_entry_may_define_a_dataclass_under_postponed_annotations(
+            self):
+        source = ('from __future__ import annotations\n'
+                  'from dataclasses import dataclass\n\n\n'
+                  '@dataclass\nclass Hp:\n    value: int\n\n\n'
+                  'def init(ctx):\n    return {"hp": Hp(3).value}\n')
+        info = {'id': 'm', 'entry': 'mods/python/m.py', 'sees': ['m'],
+                'absent': [], 'packages': []}
+        with tempfile.TemporaryDirectory() as tmp:
+            os.makedirs(os.path.join(tmp, 'mods', 'python'))
+            path = os.path.join(tmp, 'mods', 'python', 'm.py')
+            with open(path, 'w', encoding='utf-8') as f:
+                f.write(source)
+            game = load(bundle_of((info, None)), tmp)
+        self.assertEqual(game.snapshot(), {'m': {'hp': 3}})
+
     def test_r2_a_missing_entry_file_cannot_be_imported(self):
         info = {'id': 'm', 'entry': 'mods/python/m.py', 'sees': ['m'],
                 'absent': [], 'packages': []}

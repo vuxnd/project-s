@@ -28,7 +28,7 @@ package.json, tsconfig*.json  npm scripts and three exact devDependencies; Node,
 <root>/games/<id>/game.json                         composition (C2)
 ```
 
-A root is a directory with a `modules/` folder and, optionally, `games/`. The checked roots are `.`, `examples` and `hosts/conformance`; a module sees only modules of its own root. The tool writes bundles and trace bundles under `build/`, which git ignores.
+A root is a directory with a `modules/` folder and, optionally, `games/`. The checked roots are `.`, `examples` and `hosts/conformance`; a module sees only modules of its own root. `examples` and `hosts/conformance` are the foundation's own test material, named by the npm scripts and the tests: keep them, build the game in `modules/` and `games/`, and to use an example module there, copy its folder, fix the `$schema` paths `npm run check` names and run `npm run gen`. The tool writes bundles and trace bundles under `build/`, which git ignores.
 
 ## Principles
 
@@ -54,7 +54,7 @@ Six systems share ten contracts: the tool (`tools/repo/`) checks and compiles, t
 | C4 | Bundle: one deterministic file per game and host with everything the host needs | `schemas/bundle.schema.json` |
 | C5 | Runtime: `load(bundle, options)` yields a game with `tick`, `frame`, `call` and `snapshot`; a module entry exports an optional `init(ctx)` that returns its state, one function per declared system and an `operations` object, each called with the module's `ctx`; rules R1 to R22 | `hosts/js/runtime.ts`, the reference; tests named R1 to R22 in `hosts/js/test/runtime.test.ts` and `hosts/python/test_runtime.py` |
 | C6 | Trace and trace bundle | `schemas/trace.schema.json`, `schemas/trace-bundle.schema.json` |
-| C7 | Ids, paths and numbers: names match `^[a-z][a-z0-9_]{0,63}$`, ids are strings, paths are posix | the `name` patterns in `schemas/module.schema.json` |
+| C7 | Ids, paths and numbers: names match `^[a-z][a-z0-9_]{0,63}$`; type, event, operation and system ids are `<module>.<name>`, record ids `<module>/<name>` after the module whose `content` folder holds the record; ids are strings, integers stay within ±(2^53 − 1), paths are posix | the `name` patterns in `schemas/module.schema.json` |
 | C8 | Schema profile: the JSON Schema 2020-12 keywords that map to one TypeScript shape and pass Ajv strict mode | `tools/repo/lib/profile.ts` |
 | C9 | Generated types `types.gen.ts` and the import rule | `tools/repo/lib/gen.ts`, `tools/repo/lib/imports.ts` |
 | C10 | Tool CLI: exit codes 0, 1 and 2, the problem format, 42 append-only rule ids, the npm script names | `tools/repo/cli.ts`, `tools/repo/commands/`, `tools/repo/lib/problems.ts`, `tools/repo/lib/rules.ts`, `package.json` |
@@ -83,7 +83,7 @@ Six systems share ten contracts: the tool (`tools/repo/`) checks and compiles, t
 - Hand-written module code imports only files in its own folder and packages listed in `packages`; its `test` folder may also import `node:` built-ins. `tools/repo/lib/imports.ts` checks this on raw source.
 - `tsconfig.portable.json` keeps the runtime and module `ts` code off DOM and Node APIs; `tsconfig.web.json` keeps web code off Node APIs.
 - Rules the tool does not check: module code keeps no module-level mutable state, never calls `Math.random`, `Date`, `performance` or `crypto` (in Python `random`, `time`, `datetime`, `secrets`), and frame systems emit only discrete events.
-- Limits: isolation is not a security boundary, since a JavaScript host runs every module in one realm; the import scan is lexical and reads only `.ts` files; a Python entry is one file, because the runtime loads it by path with no package, so importing a sibling file fails; R9 and R18 run only in debug mode, which the web host does not use; `x-ref` is checked only in records, not in config, event payloads, params, results or state.
+- Limits: isolation is not a security boundary, since a JavaScript host runs every module in one realm and the trace runners, `npm run migrate` and `npm test` run module code and migration steps with the user's rights; the import scan is lexical and reads only `.ts` files; a Python entry is one file, because the runtime loads it by path with no package, so importing a sibling file fails; R9 and R18 run only in debug mode, which the web host does not use, and the Python runner and `play.py` pass no `validate`, so the schema checks of R18 run only on JavaScript code; `x-ref` is checked only in records, not in config, event payloads, params, results or state.
 
 ## Data flows
 
@@ -112,7 +112,7 @@ browser event             pointerdown on ctx.host.canvas
 
 ## Extension mechanisms
 
-`tools/repo/test/walkthroughs.test.ts` runs (a), (b), (c) and (e) on a temporary copy of `schemas/` and `examples/`; (d) and (f) need tools that are not installed and stay designed. Doing (b), (c) or (e) for real also edits that test file, whose tests assume today's examples.
+`tools/repo/test/walkthroughs.test.ts` runs (a), (b), (c) and (e) on a temporary copy of `schemas/` and `examples/`; (d) and (f) need tools that are not installed and stay designed. The walkthroughs, the example cases of `tools/repo/test/smoke.test.ts` and the paths and commands of this file and `README.md` assume today's examples, so doing a change for real in `examples/` also edits them: (a) the 40-tick counts, (b) walkthroughs (b), (c) and (e), (c) walkthrough (c) and the `audio` path in the table, (e) or a new `physics` trace walkthrough (e). A game in `modules/` and `games/` touches none of them.
 
 | Change | Files touched | Proof |
 |---|---|---|
@@ -124,7 +124,7 @@ browser event             pointerdown on ctx.host.canvas
 | (f) Adopt a build or CI tool | `package.json` and `package-lock.json` (one exact devDependency); the new CI file | designed only: `npm test` unchanged; the new script exits 0 |
 
 - A record type is a schema under `types` plus records in `content/<type id>/`. An event or operation is one manifest entry with its schemas.
-- A contract is a module with `contract: true`, at least one implementation, and traces: one JSON file each in its `conformance` folder, run for every implementation on node and python.
+- A contract is a module with `contract: true`, at least one implementation, and traces: one JSON file each in its `conformance` folder, run for every implementation on each of node and python it has an entry for. In a trace, a call expectation `at: N` and a count expectation `by: N` are checked after N ticks, an input `at: N` enters tick N, and `count` counts the events that ticks 0 to N−1 returned.
 
 ## Technology integration
 
@@ -159,8 +159,8 @@ hosts/godot/test/golden/format-1/                         golden trace bundles
 
 Compatibility is promised only where a consumer can lag behind the code.
 
-- Records carry `$version`. An optional new property keeps version N; a change that invalidates a record or changes a field's meaning needs N+1 and a step `migrations/<type name>/<N>.ts` with `<N>.before.json` and `<N>.after.json`, compared by `tools/repo/test/migrations.test.ts`. Steps are never deleted.
-- An outdated record is `[outdated-record]`; `npm run migrate -- --write` rewrites content and trace records in every root.
+- Records carry `$version`. An optional new property keeps version N; a change that invalidates a record or changes a field's meaning raises it to N+1 and adds the step `migrations/<type name>/<N+1>.ts`, whose default export takes a version N record and returns the version N+1 body (the tool sets `$version` and keeps `$schema` and `$comment`), with `<N+1>.before.json` and `<N+1>.after.json`, compared by `tools/repo/test/migrations.test.ts`. Steps are never deleted.
+- An outdated record is `[outdated-record]`; `npm run migrate -- --write` rewrites, in the tool's JSON layout, every content file and trace that holds one, in every root.
 - Manifests and games: no `manifest` field means format 1. A breaking change adds format 2, and the tool reads both until every file is rewritten in the same change.
 - Bundle format: an integer `format` that grows only by optional fields. Hosts ignore unknown fields (R22) and refuse other formats (R1); the goldens in `hosts/js/test/golden/format-1/` and `hosts/python/test/golden/format-1/` keep both hosts reading format 1.
 - Runtime (C5): the probe traces keep passing on node and python.
@@ -189,10 +189,10 @@ Compatibility is promised only where a consumer can lag behind the code.
 | Fixture roots | each rule except `[game-host]` and `[migration-failed]` fires with its exact id: 51 roots, each with an `expect.json` | `tools/repo/test/fixtures/roots/`, `tools/repo/test/check.test.ts` |
 | Unit | tool libraries and commands; both runtimes rule by rule; both runners; the web loop, server and presentation modules with fakes; module logic with a fake ctx | `tools/repo/test/`, `hosts/js/test/`, `hosts/js/web/test/`, `hosts/python/`, each example module's `test` folder |
 | Repository check | every manifest, game, schema, record, reference, asset, import, config, trace and generated file of the three roots | `npm run check` |
-| Bundle snapshot | the example bundles change only on purpose; two builds give identical bytes | `tools/repo/test/examples.test.ts` |
+| Bundle snapshot | the bundles of every game of `.` and `examples` change only on purpose, accepted with `node --test --test-update-snapshots tools/repo/test/examples.test.ts`; two builds give identical bytes | `tools/repo/test/examples.test.ts` |
 | Conformance | node and python pass the eight probe traces of C5 (fixed loop only; the frame loop is unit-tested); each implementation meets its contract (the `physics` traces) on node and python | `npm run test:traces` |
 | Compatibility | every migration sample gives its after sample; each host still passes its format 1 goldens | `tools/repo/test/migrations.test.ts`, the golden folders |
-| Smoke | every game of `.` and `examples` runs 300 ticks in debug mode on node and python with results equal within 1e-9 | `tools/repo/test/smoke.test.ts` |
+| Smoke | every game of `.` and `examples` runs 300 ticks in debug mode on each of node and python that it lists, and a game that lists both ends with results equal within 1e-9 | `tools/repo/test/smoke.test.ts` |
 | Walkthroughs | (a), (b), (c) and (e) | `tools/repo/test/walkthroughs.test.ts` |
 | Types | the Node, portable and web projects type-check | `npm run test:types` |
 | Documents | every inline-code path in this file and `README.md` exists (code blocks are not checked); every `sh` line runs, except `npm ci`, `npm test` and `npm run serve`, which must be valid; the headings and contract labels exist | `tools/repo/docs.ts` |

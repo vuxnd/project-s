@@ -2,6 +2,7 @@
 import importlib.util
 import json
 import os
+import sys
 from collections.abc import Callable
 from typing import Any
 
@@ -40,13 +41,15 @@ def _clean(value: Any, kind: str, target: str) -> Any:
 
 
 def _import_file(root: str, module_id: str, entry: str) -> Any:
-    # A fresh module object per call, loaded by file path.
+    # A fresh module object per call, loaded by file path and registered in
+    # sys.modules, where dataclasses look it up while it runs.
     path = os.path.join(root, *entry.split('/'))
     spec = importlib.util.spec_from_file_location(
         'bundle_module_' + module_id, path)
     if spec is None or spec.loader is None or not os.path.isfile(path):
         raise BundleError(f'cannot import: {entry}')
     module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     return module
 

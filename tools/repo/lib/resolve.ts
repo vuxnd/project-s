@@ -87,7 +87,9 @@ export function resolve(index: RootIndex, composition: Composition, host: string
 
   for (const id of selected) {
     const m = modules.get(id)!;
-    if (m.code && !Object.hasOwn(m.hosts, host)) problems.push(error(m.file, '/hosts', 'no-host-entry', `${id} has no entry for host ${host}`));
+    // An implementation runs its contracts' operations, so it needs an entry even when it declares nothing else.
+    const provides = m.implements.some((c) => Object.keys(modules.get(c)?.operations ?? {}).length > 0);
+    if ((m.code || provides) && !Object.hasOwn(m.hosts, host)) problems.push(error(m.file, '/hosts', 'no-host-entry', `${id} has no entry for host ${host}, needed by ${composition.file}`));
   }
 
   const loadable = selected.filter((id) => !modules.get(id)!.contract);

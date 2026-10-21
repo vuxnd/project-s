@@ -26,6 +26,7 @@ npm test
 | `npm run gen` | writes `types.gen.ts` for every module; `npm run gen -- --check` only compares |
 | `npm run build -- <game> --host <host> --root <root>` | writes `build/<root>/games/<game>/<host>/bundle.json` |
 | `npm run migrate` | lists records older than their type; `npm run migrate -- --write` rewrites them |
+| `node --test --test-update-snapshots tools/repo/test/examples.test.ts` | rewrites the bundle snapshot of every game; run it after an intended change to a game, its modules, records or config, which `npm test` reports as a snapshot mismatch |
 | `npm run serve` | serves the repository for the web host on port 8080 |
 | `node tools/repo/cli.ts help` | lists the tool's commands |
 | `node tools/repo/cli.ts traces --host <host> --root <root>` | compiles a root's traces into trace bundles |
@@ -39,7 +40,7 @@ npm run build -- sandbox --host web --root examples
 npm run serve
 ```
 
-Then open `http://127.0.0.1:8080/hosts/js/web/index.html?root=examples&game=sandbox`. Two crates and a plank fall and stack, each first contact plays a tone, and a click on the canvas drops another crate.
+Then open `http://127.0.0.1:8080/hosts/js/web/index.html?root=examples&game=sandbox`. Two crates and a plank fall and stack, and a click on the canvas drops another crate. Each first contact plays a tone, but the browser keeps sound off until the first click or key press, so the tones of the first landings sound together then.
 
 ## Tree
 
