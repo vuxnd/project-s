@@ -1,0 +1,17 @@
+{
+  "$schema": "../../schemas/clip.schema.json",
+  "$version": 1,
+  "$comment": "Walk in place, one step of each leg per second; rotations only, so the body stays where it stands.",
+  "rig": "humanoid/base",
+  "duration": 1,
+  "parts": {
+    "upper_arm_l": [{ "time": 0, "rotation": [20, 0, 0] }, { "time": 0.5, "rotation": [-20, 0, 0] }, { "time": 1, "rotation": [20, 0, 0] }],
+    "forearm_l": [{ "time": 0, "rotation": [-10, 0, 0] }, { "time": 0.5, "rotation": [-25, 0, 0] }, { "time": 1, "rotation": [-10, 0, 0] }],
+    "upper_arm_r": [{ "time": 0, "rotation": [-20, 0, 0] }, { "time": 0.5, "rotation": [20, 0, 0] }, { "time": 1, "rotation": [-20, 0, 0] }],
+    "forearm_r": [{ "time": 0, "rotation": [-25, 0, 0] }, { "time": 0.5, "rotation": [-10, 0, 0] }, { "time": 1, "rotation": [-25, 0, 0] }],
+    "thigh_l": [{ "time": 0, "rotation": [-25, 0, 0] }, { "time": 0.5, "rotation": [25, 0, 0] }, { "time": 1, "rotation": [-25, 0, 0] }],
+    "shin_l": [{ "time": 0, "rotation": [0, 0, 0] }, { "time": 0.5, "rotation": [10, 0, 0] }, { "time": 0.75, "rotation": [40, 0, 0] }, { "time": 1, "rotation": [0, 0, 0] }],
+    "thigh_r": [{ "time": 0, "rotation": [25, 0, 0] }, { "time": 0.5, "rotation": [-25, 0, 0] }, { "time": 1, "rotation": [25, 0, 0] }],
+    "shin_r": [{ "time": 0, "rotation": [10, 0, 0] }, { "time": 0.25, "rotation": [40, 0, 0] }, { "time": 0.5, "rotation": [0, 0, 0] }, { "time": 1, "rotation": [10, 0, 0] }]
+  }
+}

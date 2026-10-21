@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Clip",
+  "description": "Rotations of rig parts over time. Each part turns about its pivot by its x, then y, then z angle, about the axes of its parent, and carries its children with it; a part without keys keeps its rest pose. Angles change linearly between keys and hold the first key before it and the last key after it. Axes: +Y up, +Z forward, +X the character's left; a positive angle turns counterclockwise seen from the positive end of its axis.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$version", "rig", "duration", "parts"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "$version": { "const": 1 },
+    "$comment": { "type": "string" },
+    "rig": { "type": "string", "x-ref": "humanoid.rig" },
+    "duration": { "description": "The clip runs from 0 to duration; a looping player starts again at 0.", "type": "number", "exclusiveMinimum": 0, "x-unit": "s" },
+    "parts": {
+      "description": "Keys by rig part name, in time order.",
+      "type": "object",
+      "propertyNames": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,63}$" },
+      "additionalProperties": { "type": "array", "items": { "$ref": "#/$defs/key" }, "minItems": 1 }
+    }
+  },
+  "$defs": {
+    "key": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["time", "rotation"],
+      "properties": {
+        "time": { "type": "number", "minimum": 0, "x-unit": "s" },
+        "rotation": {
+          "description": "Degrees about x, y and z; a positive x angle swings a hanging limb backward.",
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 3,
+          "maxItems": 3,
+          "x-unit": "deg"
+        }
+      }
+    }
+  }
+}
