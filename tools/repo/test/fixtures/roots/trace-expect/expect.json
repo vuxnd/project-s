@@ -1,0 +1,6 @@
+{
+  "$comment": "The trace bad.json expects with at (call form) and emitted (count form) in one entry.",
+  "errors": ["trace-expect"],
+  "warnings": [],
+  "generated": false
+}

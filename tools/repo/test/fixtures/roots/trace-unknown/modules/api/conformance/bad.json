@@ -1,0 +1,7 @@
+{
+  "$schema": "../../../../../../../../../schemas/trace.schema.json",
+  "summary": "Calls api.nothing.",
+  "fixedHz": 60,
+  "ticks": 1,
+  "expect": [{ "at": 1, "call": "api.nothing", "equals": 0 }]
+}

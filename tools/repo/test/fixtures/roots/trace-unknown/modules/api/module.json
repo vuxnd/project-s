@@ -1,0 +1,7 @@
+{
+  "$schema": "../../../../../../../../schemas/module.schema.json",
+  "id": "api",
+  "summary": "A contract with the operation count and a trace that calls an operation it does not have.",
+  "contract": true,
+  "operations": { "count": { "result": "schemas/count.schema.json" } }
+}

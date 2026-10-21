@@ -7,8 +7,11 @@
     "runtime": { "name": "node", "version": ">=24.12.0", "onFail": "error" }
   },
   "scripts": {
-    "test": "npm run gen -- --check && npm run test:types && npm run test:unit",
+    "test": "npm run check && npm run test:types && npm run test:unit",
+    "check": "node tools/repo/cli.ts check --root .",
     "gen": "node tools/repo/cli.ts gen --root .",
+    "build": "node tools/repo/cli.ts build",
+    "migrate": "node tools/repo/cli.ts migrate --root .",
     "test:types": "tsc -p tsconfig.json && tsc -p tsconfig.portable.json",
     "test:unit": "node --test \"tools/**/*.test.ts\" \"hosts/**/*.test.ts\" \"modules/**/*.test.ts\" \"examples/**/*.test.ts\" && node hosts/python/run.ts -m unittest discover -s hosts/python -p \"test_*.py\""
   },
