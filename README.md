@@ -49,7 +49,7 @@ schemas/                   JSON Schemas of manifests, games, bundles and traces
 tools/repo/                the repository tool (cli.ts, commands/, lib/), its tests and fixture roots, docs.ts
 hosts/js/                  JavaScript runtime and Node trace runner; web/ holds the browser host
 hosts/python/              Python runtime, trace runner and bundle player
-hosts/conformance/         the probe contract, whose traces define the runtime rules
+hosts/conformance/         the probe contract, whose traces test the runtime rules on node and python
 examples/                  example modules and the sandbox game
 modules/                   the game's modules
 games/                     the game's compositions
