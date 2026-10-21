@@ -7,7 +7,7 @@ Project S is an engine-neutral game foundation. Games are module folders and JSO
 ```text
 schemas/              contract schemas (C1, C2, C4, C6)
 tools/repo/           the tool: cli.ts, commands/, lib/
-tools/voxel/          the voxel preview renderer: PNGs from Node, a turnable browser viewer under web/, without dependencies
+tools/voxel/          the voxel preview renderer: PNGs from Node, a turnable browser viewer under web/, without dependencies; browser.ts checks the viewer in headless Chromium
 hosts/js/             runtime.ts (C5), trace runner; web/ is the browser host
 hosts/python/         runtime.py, trace runner, bundle player
 hosts/conformance/    root: the probe contract; its traces test C5
@@ -83,7 +83,7 @@ Records carry `$version`; a breaking change raises it by one and adds a migratio
 
 ## 5. External Integrations / APIs
 
-- None at run time. Development uses `typescript` (`tsc` type checks), @types/node and `ajv` (schema validation, only in `tools/repo/lib/validate.ts`), all exact-pinned devDependencies that nothing ships. Floors: Node 24.12, Python 3.11 (standard library only). CI: GitHub Actions.
+- None at run time. Development uses `typescript` (`tsc` type checks), @types/node, `ajv` (schema validation, only in `tools/repo/lib/validate.ts`) and `playwright` (headless Chromium for `npm run browser`, which `npm test` does not run), all exact-pinned devDependencies that nothing ships. Floors: Node 24.12, Python 3.11 (standard library only). CI: GitHub Actions.
 - Godot is a designed target. Strategy A, native runtime (default): a C5 runtime in the engine's language, proven by the same traces.
 - Strategy B, embedded JavaScript: the engine runs `hosts/js/runtime.ts` unchanged. Strategy C, out of process: Node runs the game, the engine renders over a socket; development only.
 - Engine work stays in host folders and `ctx.host`; records stay engine-neutral: string ids, float tolerance, GLB with glTF axes.
@@ -110,6 +110,7 @@ Records carry `$version`; a breaking change raises it by one and adds a migratio
 - Compatibility goldens: each host still reads its golden trace bundles.
 - Walkthroughs: extension changes work on copies of the schemas and a frozen sandbox.
 - Docs: this file's paths exist.
+- Browser, by hand: `npm run browser` opens the voxel viewer in headless Chromium and checks that it draws, turns and plays the walk.
 
 ## 9. Future Considerations / Roadmap
 

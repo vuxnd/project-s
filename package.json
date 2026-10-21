@@ -13,6 +13,7 @@
     "build": "node tools/repo/cli.ts build",
     "migrate": "node tools/repo/cli.ts migrate --root . --root examples --root hosts/conformance",
     "serve": "node --disable-warning=ExperimentalWarning hosts/js/web/serve.ts",
+    "browser": "node --disable-warning=ExperimentalWarning tools/voxel/browser.ts",
     "test:types": "tsc -p tsconfig.json && tsc -p tsconfig.portable.json && tsc -p tsconfig.web.json",
     "test:unit": "node --test \"tools/**/*.test.ts\" \"hosts/**/*.test.ts\" \"modules/**/*.test.ts\" \"examples/**/*.test.ts\" && node hosts/python/run.ts -m unittest discover -s hosts/python -p \"test_*.py\"",
     "test:traces": "node tools/repo/cli.ts traces --host node --host python --root . --root examples --root hosts/conformance && node hosts/js/conformance.ts build/traces/node build/examples/traces/node build/hosts/conformance/traces/node hosts/js/test/golden/format-1 && node hosts/python/run.ts hosts/python/conformance.py build/traces/python build/examples/traces/python build/hosts/conformance/traces/python hosts/python/test/golden/format-1",
@@ -21,6 +22,7 @@
   "devDependencies": {
     "@types/node": "24.19.2",
     "ajv": "8.20.0",
+    "playwright": "1.64.1",
     "typescript": "7.0.2"
   }
 }

@@ -15,7 +15,7 @@ npm ci
 npm test
 ```
 
-`npm ci` installs the three pinned development packages from `package-lock.json`. `npm test` runs every check; the last line it prints is `docs: <p> paths, <c> commands checked, 0 failures` when all pass.
+`npm ci` installs the four pinned development packages from `package-lock.json`. `npm test` runs every check; the last line it prints is `docs: <p> paths, <c> commands checked, 0 failures` when all pass.
 
 ## Commands
 
@@ -28,6 +28,7 @@ npm test
 | `npm run migrate` | lists records older than their type; `npm run migrate -- --write` rewrites them |
 | `node --test --test-update-snapshots tools/repo/test/examples.test.ts` | rewrites the bundle snapshot of every game of `.` and of the frozen sandbox root `tools/repo/test/fixtures/roots/sandbox`; run it after an intended change to one of those games, its modules, records or config, which `npm test` reports as a snapshot mismatch |
 | `npm run serve` | serves the repository for the web host on port 8080 |
+| `npm run browser` | opens the voxel viewer in headless Chromium and checks that the model draws, turns on drag and walks; writes screenshots under `build/browser/`; needs `npx playwright install chromium` once |
 | `node tools/repo/cli.ts help` | lists the tool's commands |
 | `node tools/repo/cli.ts traces --host <host> --root <root>` | compiles a root's traces into trace bundles |
 | `node hosts/js/conformance.ts <dir>...` | runs trace bundles on Node |
@@ -52,7 +53,7 @@ With `npm run serve` running, open `http://127.0.0.1:8080/tools/voxel/web/index.
 .github/workflows/ci.yml   CI: npm ci, then npm test
 schemas/                   JSON Schemas of manifests, games, bundles and traces
 tools/repo/                the repository tool (cli.ts, commands/, lib/), its tests and fixture roots, docs.ts
-tools/voxel/               the voxel preview renderer: PNGs from Node, a turnable browser viewer under web/, without dependencies
+tools/voxel/               the voxel preview renderer: PNGs from Node, a turnable browser viewer under web/, without dependencies; browser.ts checks the viewer in headless Chromium
 hosts/js/                  JavaScript runtime and Node trace runner; web/ holds the browser host
 hosts/python/              Python runtime, trace runner and bundle player
 hosts/conformance/         the probe contract, whose traces test the runtime rules on node and python
